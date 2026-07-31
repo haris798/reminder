@@ -54,7 +54,7 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
         // Schedule periodic background sync worker
         SyncWorker.schedulePeriodicSync(application)
 
-        val formattedDate = SimpleDateFormat("EEEE, d MMMM yyyy", Locale("id", "ID")).format(Date())
+        val formattedDate = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.forLanguageTag("id-ID")).format(Date())
 
         uiState = combine(
             repository.getWaterLogsForDate(todayIsoDate),
