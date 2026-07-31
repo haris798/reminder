@@ -142,7 +142,7 @@ val ensureDebugKeystore = tasks.register("ensureDebugKeystore") {
   val targetKeystore = file("${rootDir}/debug.keystore")
   val targetBase64 = file("${rootDir}/debug.keystore.base64")
   outputs.file(targetKeystore)
-  doLast {
+  doFirst {
     if (!targetKeystore.exists()) {
       if (targetBase64.exists()) {
         try {
@@ -168,6 +168,9 @@ val ensureDebugKeystore = tasks.register("ensureDebugKeystore") {
           process.waitFor()
         } catch (_: Exception) {
         }
+      }
+      if (!targetKeystore.exists()) {
+        logger.warn("debug.keystore does not exist.")
       }
     }
   }
