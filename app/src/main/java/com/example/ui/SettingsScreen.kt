@@ -36,18 +36,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,7 +66,7 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     settingsManager: SupabaseSettingsManager,
     viewModel: HydrationViewModel,
-    onTestUpload: () -> Unit,
+    onTestUpload: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,8 +76,6 @@ fun SettingsScreen(
     var email by remember { mutableStateOf(currentConfig.userEmail) }
     var password by remember { mutableStateOf(currentConfig.userPassword) }
     var apiKey by remember { mutableStateOf(currentConfig.apiKey) }
-    var autoUpload by remember { mutableStateOf(currentConfig.autoUpload) }
-    var intervalMinutes by remember { mutableFloatStateOf(currentConfig.uploadIntervalMinutes.toFloat()) }
 
     var apiKeyVisible by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -96,8 +89,8 @@ fun SettingsScreen(
             userEmail = email,
             userPassword = password,
             apiKey = apiKey,
-            autoUpload = autoUpload,
-            uploadIntervalMinutes = intervalMinutes.toInt()
+            autoUpload = currentConfig.autoUpload,
+            uploadIntervalMinutes = currentConfig.uploadIntervalMinutes
         )
         settingsManager.saveConfig(newConfig)
         scope.launch {
@@ -340,109 +333,6 @@ fun SettingsScreen(
                             .testTag("supabase_apikey_input"),
                         shape = RoundedCornerShape(16.dp)
                     )
-
-                    // 5. Auto Upload Switch
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Auto Upload",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Unggah data secara berkala di background",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        Switch(
-                            checked = autoUpload,
-                            onCheckedChange = { autoUpload = it },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                                checkedTrackColor = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier.testTag("auto_upload_switch")
-                        )
-                    }
-
-                    // 6. Upload Interval Slider
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        val currentInt = intervalMinutes.toInt()
-                        Text(
-                            text = "Interval Upload: $currentInt menit (Min. 15 menit)",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Slider(
-                            value = intervalMinutes,
-                            onValueChange = { intervalMinutes = it },
-                            valueRange = 15f..120f,
-                            steps = 6,
-                            colors = SliderDefaults.colors(
-                                thumbColor = MaterialTheme.colorScheme.primary,
-                                activeTrackColor = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("upload_interval_slider")
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("15m", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("30m", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("60m", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("120m", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // 7. Test Upload Data Button
-                    Button(
-                        onClick = {
-                            saveConfigAction()
-                            onTestUpload()
-                        },
-                        enabled = !uiState.isSyncing,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp)
-                            .testTag("test_upload_data_button"),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        if (uiState.isSyncing) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Mengunggah Data...", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.CloudUpload,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Tes Upload Data", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
                 }
             }
         }

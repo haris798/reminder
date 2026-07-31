@@ -1,5 +1,6 @@
 package com.example.data.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.text.SimpleDateFormat
@@ -14,11 +15,22 @@ import java.util.UUID
 @Entity(tableName = "coffee_logs")
 data class CoffeeLog(
     @PrimaryKey
+    @ColumnInfo(name = "id")
     val id: String = UUID.randomUUID().toString(),
+
+    @ColumnInfo(name = "coffee_type")
     val coffeeType: String,
+
+    @ColumnInfo(name = "caffeine_mg")
     val caffeineMg: Int,
+
+    @ColumnInfo(name = "created_at")
     val createdAt: String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date()),
+
+    @ColumnInfo(name = "date_string")
     val dateString: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
+
+    @ColumnInfo(name = "is_synced")
     val isSynced: Boolean = false
 ) {
     fun toMap(): Map<String, Any> {

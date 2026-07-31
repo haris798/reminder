@@ -76,6 +76,7 @@ import com.example.ui.components.CoffeeLogCard
 @Composable
 fun DashboardScreen(
     viewModel: HydrationViewModel,
+    isSupabaseConnected: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,38 +113,40 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
-                    // Supabase Online Connected Badge
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(end = 6.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color(0xFF3ECF8E).copy(alpha = 0.15f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                            .testTag("supabase_online_badge")
-                    ) {
-                        Box(
+                    // Supabase Online Connected Badge (only shown when connected)
+                    if (isSupabaseConnected) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .size(7.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF3ECF8E))
-                        )
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Icon(
-                            imageVector = Icons.Default.CloudDone,
-                            contentDescription = "Supabase Online",
-                            tint = Color(0xFF3ECF8E),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Supabase",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp
-                            ),
-                            color = Color(0xFF3ECF8E)
-                        )
+                                .padding(end = 6.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF3ECF8E).copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .testTag("supabase_online_badge")
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(7.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF3ECF8E))
+                            )
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Icon(
+                                imageVector = Icons.Default.CloudDone,
+                                contentDescription = "Supabase Online",
+                                tint = Color(0xFF3ECF8E),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Supabase",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp
+                                ),
+                                color = Color(0xFF3ECF8E)
+                            )
+                        }
                     }
 
                     // Test notification action button

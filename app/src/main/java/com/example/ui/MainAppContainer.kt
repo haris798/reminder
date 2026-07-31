@@ -40,6 +40,7 @@ fun MainAppContainer(
 ) {
     val context = LocalContext.current
     val settingsManager = remember { SupabaseSettingsManager(context) }
+    val supabaseConfig by settingsManager.configState.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableIntStateOf(0) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -83,12 +84,15 @@ fun MainAppContainer(
     ) { innerPadding ->
         val contentModifier = Modifier.padding(innerPadding)
         when (selectedTab) {
-            0 -> DashboardScreen(viewModel = viewModel, modifier = contentModifier)
+            0 -> DashboardScreen(
+                viewModel = viewModel,
+                isSupabaseConnected = supabaseConfig.isConnected,
+                modifier = contentModifier
+            )
             1 -> HistoryScreen(viewModel = viewModel, modifier = contentModifier)
             2 -> SettingsScreen(
                 settingsManager = settingsManager,
                 viewModel = viewModel,
-                onTestUpload = { viewModel.triggerManualSync() },
                 modifier = contentModifier
             )
         }

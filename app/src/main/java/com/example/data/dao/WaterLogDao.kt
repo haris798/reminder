@@ -9,22 +9,22 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WaterLogDao {
-    @Query("SELECT * FROM water_logs WHERE dateString = :date ORDER BY createdAt DESC")
+    @Query("SELECT * FROM water_logs WHERE date_string = :date ORDER BY created_at DESC")
     fun getWaterLogsByDate(date: String): Flow<List<WaterLog>>
 
-    @Query("SELECT SUM(amountMl) FROM water_logs WHERE dateString = :date")
+    @Query("SELECT SUM(amount_ml) FROM water_logs WHERE date_string = :date")
     fun getTotalWaterForDate(date: String): Flow<Int?>
 
-    @Query("SELECT SUM(amountMl) FROM water_logs WHERE dateString = :date")
+    @Query("SELECT SUM(amount_ml) FROM water_logs WHERE date_string = :date")
     suspend fun getTotalWaterForDateDirect(date: String): Int?
 
-    @Query("SELECT * FROM water_logs WHERE isSynced = 0")
+    @Query("SELECT * FROM water_logs WHERE is_synced = 0")
     suspend fun getUnsyncedWaterLogs(): List<WaterLog>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWaterLog(waterLog: WaterLog)
 
-    @Query("UPDATE water_logs SET isSynced = 1 WHERE id IN (:ids)")
+    @Query("UPDATE water_logs SET is_synced = 1 WHERE id IN (:ids)")
     suspend fun markWaterLogsAsSynced(ids: List<String>)
 
     @Query("DELETE FROM water_logs WHERE id = :id")

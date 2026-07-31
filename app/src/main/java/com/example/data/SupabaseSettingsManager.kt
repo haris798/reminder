@@ -13,7 +13,10 @@ data class SupabaseConfig(
     val apiKey: String = "",
     val autoUpload: Boolean = true,
     val uploadIntervalMinutes: Int = 15
-)
+) {
+    val isConnected: Boolean
+        get() = supabaseUrl.isNotBlank() && apiKey.isNotBlank()
+}
 
 class SupabaseSettingsManager(context: Context) {
 
