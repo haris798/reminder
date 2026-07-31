@@ -10,34 +10,6 @@ plugins {
   alias(libs.plugins.google.services)
 }
 
-fun ensureDebugKeystoreFile(keystoreFile: File, base64File: File) {
-  if (keystoreFile.exists()) return
-  if (base64File.exists()) {
-    try {
-      val bytes = Base64.getDecoder().decode(base64File.readText().trim())
-      keystoreFile.writeBytes(bytes)
-      if (keystoreFile.exists()) return
-    } catch (_: Exception) {
-    }
-  }
-  try {
-    val process = ProcessBuilder(
-      "keytool",
-      "-genkeypair",
-      "-alias", "androiddebugkey",
-      "-keypass", "android",
-      "-keystore", keystoreFile.absolutePath,
-      "-storepass", "android",
-      "-dname", "CN=Android Debug,O=Android,C=US",
-      "-keyalg", "RSA",
-      "-keysize", "2048",
-      "-validity", "10000"
-    ).start()
-    process.waitFor()
-  } catch (_: Exception) {
-  }
-}
-
 android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
@@ -62,14 +34,10 @@ android {
     }
     create("debugConfig") {
       val debugKeystore = file("${rootDir}/debug.keystore")
-      val debugBase64 = file("${rootDir}/debug.keystore.base64")
-      ensureDebugKeystoreFile(debugKeystore, debugBase64)
-      if (debugKeystore.exists()) {
-        storeFile = debugKeystore
-        storePassword = "android"
-        keyAlias = "androiddebugkey"
-        keyPassword = "android"
-      }
+      storeFile = debugKeystore
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
     }
   }
 
