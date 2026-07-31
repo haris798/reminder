@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Base64
 
 plugins {
   alias(libs.plugins.android.application)
@@ -7,6 +8,34 @@ plugins {
   alias(libs.plugins.roborazzi)
   alias(libs.plugins.secrets)
   alias(libs.plugins.google.services)
+}
+
+fun ensureDebugKeystoreFile(keystoreFile: File, base64File: File) {
+  if (keystoreFile.exists()) return
+  if (base64File.exists()) {
+    try {
+      val bytes = Base64.getDecoder().decode(base64File.readText().trim())
+      keystoreFile.writeBytes(bytes)
+      if (keystoreFile.exists()) return
+    } catch (_: Exception) {
+    }
+  }
+  try {
+    val process = ProcessBuilder(
+      "keytool",
+      "-genkeypair",
+      "-alias", "androiddebugkey",
+      "-keypass", "android",
+      "-keystore", keystoreFile.absolutePath,
+      "-storepass", "android",
+      "-dname", "CN=Android Debug,O=Android,C=US",
+      "-keyalg", "RSA",
+      "-keysize", "2048",
+      "-validity", "10000"
+    ).start()
+    process.waitFor()
+  } catch (_: Exception) {
+  }
 }
 
 android {
@@ -32,10 +61,15 @@ android {
       keyPassword = System.getenv("KEY_PASSWORD")
     }
     create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
+      val debugKeystore = file("${rootDir}/debug.keystore")
+      val debugBase64 = file("${rootDir}/debug.keystore.base64")
+      ensureDebugKeystoreFile(debugKeystore, debugBase64)
+      if (debugKeystore.exists()) {
+        storeFile = debugKeystore
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+      }
     }
   }
 
@@ -133,3 +167,45 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+val ensureDebugKeystore = tasks.register("ensureDebugKeystore") {
+  description = "Auto-generates or restores missing debug.keystore for CI/CD builds"
+  group = "build setup"
+  val targetKeystore = file("${rootDir}/debug.keystore")
+  val targetBase64 = file("${rootDir}/debug.keystore.base64")
+  outputs.file(targetKeystore)
+  doLast {
+    if (!targetKeystore.exists()) {
+      if (targetBase64.exists()) {
+        try {
+          val bytes = Base64.getDecoder().decode(targetBase64.readText().trim())
+          targetKeystore.writeBytes(bytes)
+        } catch (_: Exception) {
+        }
+      }
+      if (!targetKeystore.exists()) {
+        try {
+          val process = ProcessBuilder(
+            "keytool",
+            "-genkeypair",
+            "-alias", "androiddebugkey",
+            "-keypass", "android",
+            "-keystore", targetKeystore.absolutePath,
+            "-storepass", "android",
+            "-dname", "CN=Android Debug,O=Android,C=US",
+            "-keyalg", "RSA",
+            "-keysize", "2048",
+            "-validity", "10000"
+          ).start()
+          process.waitFor()
+        } catch (_: Exception) {
+        }
+      }
+    }
+  }
+}
+
+tasks.matching { it.name.startsWith("validateSigning") || it.name == "preBuild" }.configureEach {
+  dependsOn(ensureDebugKeystore)
+}
+
