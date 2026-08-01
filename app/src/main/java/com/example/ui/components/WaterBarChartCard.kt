@@ -75,61 +75,73 @@ fun WaterBarChartCard(
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Header Title & Legend
-            Row(
+            // Header Title & Badge
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.BarChart,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            text = "Grafik Konsumsi Air & Kopi (7 Hari)",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            text = "Target harian: $dailyGoalMl ml air",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = targetReachedColor.copy(alpha = 0.15f)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
                     ) {
                         Box(
+                            contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(8.dp)
+                                .size(38.dp)
                                 .clip(CircleShape)
-                                .background(targetReachedColor)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${dailyStats.count { it.isTargetReached }}/7 Capai Target",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = targetReachedColor
-                        )
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.BarChart,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "Grafik Konsumsi (7 Hari)",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                maxLines = 1
+                            )
+                            Text(
+                                text = "Target: $dailyGoalMl ml air / hari",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = targetReachedColor.copy(alpha = 0.15f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(targetReachedColor)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "${dailyStats.count { it.isTargetReached }}/7 Target",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = targetReachedColor,
+                                maxLines = 1
+                            )
+                        }
                     }
                 }
             }
@@ -212,14 +224,14 @@ fun WaterBarChartCard(
                     dailyStats.forEach { stat ->
                         val isSelected = selectedStat?.dateIso == stat.dateIso
 
-                        val rawWaterRatio = if (maxWaterMl > 0) stat.waterMl.toFloat() / maxWaterMl.toFloat() else 0f
+                        val rawWaterRatio = if (maxWaterMl > 0 && stat.waterMl > 0) (stat.waterMl.toFloat() / maxWaterMl.toFloat()).coerceAtLeast(0.05f) else 0f
                         val animatedWaterHeight by animateFloatAsState(
                             targetValue = rawWaterRatio.coerceIn(0f, 1f),
                             animationSpec = tween(durationMillis = 600),
                             label = "water_bar_${stat.dateIso}"
                         )
 
-                        val rawCoffeeRatio = if (maxCaffeineMg > 0) stat.caffeineMg.toFloat() / maxCaffeineMg.toFloat() else 0f
+                        val rawCoffeeRatio = if (maxCaffeineMg > 0 && stat.caffeineMg > 0) (stat.caffeineMg.toFloat() / maxCaffeineMg.toFloat()).coerceAtLeast(0.05f) else 0f
                         val animatedCoffeeHeight by animateFloatAsState(
                             targetValue = rawCoffeeRatio.coerceIn(0f, 1f),
                             animationSpec = tween(durationMillis = 600),
@@ -236,7 +248,7 @@ fun WaterBarChartCard(
                         ) {
                             // Amount label above bars
                             Text(
-                                text = if (stat.waterMl > 0) String.format(Locale.US, "%.1fL", stat.waterMl / 1000f) else "-",
+                                text = if (stat.waterMl > 0) String.format(Locale.US, "%.1fL", stat.waterMl / 1000f) else "",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 9.sp,
                                 fontWeight = if (stat.isTargetReached) FontWeight.Bold else FontWeight.Normal,
@@ -264,18 +276,20 @@ fun WaterBarChartCard(
                                         .width(10.dp)
                                         .height(100.dp)
                                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .fillMaxHeight(animatedWaterHeight)
-                                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                            .background(
-                                                if (stat.isTargetReached) targetReachedColor else waterColor
-                                            )
-                                    )
+                                    if (animatedWaterHeight > 0f) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight(animatedWaterHeight)
+                                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                                .background(
+                                                    if (stat.isTargetReached) targetReachedColor else waterColor
+                                                )
+                                        )
+                                    }
                                 }
 
                                 // 2. Coffee/Caffeine Bar (Kopi)
@@ -284,16 +298,18 @@ fun WaterBarChartCard(
                                         .width(10.dp)
                                         .height(100.dp)
                                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .fillMaxHeight(animatedCoffeeHeight)
-                                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                            .background(coffeeColor)
-                                    )
+                                    if (animatedCoffeeHeight > 0f) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight(animatedCoffeeHeight)
+                                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                                .background(coffeeColor)
+                                        )
+                                    }
                                 }
                             }
 
