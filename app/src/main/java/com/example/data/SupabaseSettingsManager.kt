@@ -2,6 +2,7 @@ package com.example.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,7 @@ data class SupabaseConfig(
     val uploadIntervalMinutes: Int = 15
 ) {
     val isConnected: Boolean
-        get() = supabaseUrl.isNotBlank() && apiKey.isNotBlank()
+        get() = supabaseUrl.isNotBlank() && apiKey.isNotBlank() && apiKey != "YOUR_SUPABASE_API_KEY_HERE"
 }
 
 class SupabaseSettingsManager(context: Context) {
@@ -27,11 +28,26 @@ class SupabaseSettingsManager(context: Context) {
     val configState: StateFlow<SupabaseConfig> = _configState.asStateFlow()
 
     fun loadConfig(): SupabaseConfig {
+        val buildConfigUrl = BuildConfig.SUPABASE_URL.ifBlank { "https://pcoyvfhcniscynjkndlw.supabase.co" }
+        val buildConfigKey = BuildConfig.SUPABASE_API_KEY
+
+        val savedUrl = prefs.getString(KEY_URL, buildConfigUrl) ?: buildConfigUrl
+        val savedEmail = prefs.getString(KEY_EMAIL, "haris443@gmail.com") ?: "haris443@gmail.com"
+        val savedPassword = prefs.getString(KEY_PASSWORD, "") ?: ""
+        val savedApiKey = prefs.getString(KEY_API_KEY, "") ?: ""
+
+        val effectiveUrl = if (savedUrl.isBlank()) buildConfigUrl else savedUrl
+        val effectiveApiKey = if (savedApiKey.isBlank()) {
+            if (buildConfigKey.isNotBlank() && buildConfigKey != "YOUR_SUPABASE_API_KEY_HERE") buildConfigKey else ""
+        } else {
+            savedApiKey
+        }
+
         return SupabaseConfig(
-            supabaseUrl = prefs.getString(KEY_URL, "https://pcoyvfhcniscynjkndlw.supabase.co") ?: "",
-            userEmail = prefs.getString(KEY_EMAIL, "haris443@gmail.com") ?: "",
-            userPassword = prefs.getString(KEY_PASSWORD, "") ?: "",
-            apiKey = prefs.getString(KEY_API_KEY, "") ?: "",
+            supabaseUrl = effectiveUrl,
+            userEmail = savedEmail,
+            userPassword = savedPassword,
+            apiKey = effectiveApiKey,
             autoUpload = prefs.getBoolean(KEY_AUTO_UPLOAD, true),
             uploadIntervalMinutes = prefs.getInt(KEY_INTERVAL, 15)
         )
@@ -58,3 +74,4 @@ class SupabaseSettingsManager(context: Context) {
         private const val KEY_INTERVAL = "supabase_upload_interval"
     }
 }
+
