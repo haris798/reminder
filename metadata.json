@@ -1,5 +1,5 @@
 {
-  "name": "Air Kopi",
+  "name": "Minum.ku",
   "description": "Aplikasi offline-first manajemen hidrasi harian dan pencatat konsumsi kopi dengan sinkronisasi background & notifikasi pengingat.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

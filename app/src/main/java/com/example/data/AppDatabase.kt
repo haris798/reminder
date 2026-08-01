@@ -10,7 +10,7 @@ import com.example.data.model.CoffeeLog
 import com.example.data.model.WaterLog
 
 /**
- * Database Room SQLite utama aplikasi Hidrasi & Kopi.
+ * Database Room SQLite utama aplikasi Minum.ku.
  * Mengelola tabel WaterLog dan CoffeeLog secara lokal.
  */
 @Database(

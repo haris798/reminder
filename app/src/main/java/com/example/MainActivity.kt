@@ -16,7 +16,7 @@ import com.example.ui.HydrationViewModel
 import com.example.ui.theme.MyApplicationTheme
 
 /**
- * Activity utama aplikasi Hidrasi & Kopi.
+ * Activity utama aplikasi Minum.ku.
  * Bertanggung jawab menginisialisasi UI Edge-to-Edge Jetpack Compose dan menyambungkan ViewModel.
  */
 class MainActivity : ComponentActivity() {

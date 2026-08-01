@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "AirKopi"
+rootProject.name = "Minum.ku"
 
 include(":app")

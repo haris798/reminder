@@ -25,7 +25,7 @@ class GreetingScreenshotTest {
   fun greeting_screenshot() {
     composeTestRule.setContent {
       MyApplicationTheme {
-        Text("Hidrasi & Kopi", style = MaterialTheme.typography.headlineMedium)
+        Text("Minum.ku", style = MaterialTheme.typography.headlineMedium)
       }
     }
 

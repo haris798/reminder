@@ -30,7 +30,7 @@
         <receiver
             android:name=".widget.HydrationWidgetProvider"
             android:exported="true"
-            android:label="Widget Hidrasi &amp; Kopi">
+            android:label="Widget Minum.ku">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.example.widget.ACTION_QUICK_ADD_WATER_250" />

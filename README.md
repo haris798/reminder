@@ -1,4 +1,4 @@
-# Manajemen Hidrasi & Kopi 💧☕
+# Minum.ku 💧☕ — Manajemen Hidrasi & Kopi
 
 Aplikasi Android *offline-first* modern berbasis **Jetpack Compose** untuk memantau asupan air minum harian dan konsumsi kopi/kafein. Aplikasi dilengkapi dengan penyimpanan lokal **Room Database**, pengingat pintar via **WorkManager**, serta opsi sinkronisasi cloud dengan **Supabase**.
 

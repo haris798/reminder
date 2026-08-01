@@ -16,14 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LightMode
@@ -68,15 +66,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.ExtendedFloatingActionButton
-import com.example.data.model.CoffeeLog
 import com.example.data.model.WaterLog
 import com.example.ui.components.AchievementsCard
 import com.example.ui.components.AddCoffeeDialog
 import com.example.ui.components.AddWaterDialog
 import com.example.ui.components.CircularWaterProgress
-import com.example.ui.components.CoffeeLogCard
 import com.example.ui.components.QuickWaterBottomSheet
-import com.example.ui.components.SwipeableLogItem
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import com.example.ui.components.WaterBarChartCard
@@ -105,8 +100,6 @@ fun DashboardScreen(
         isSupabaseConnected = isSupabaseConnected,
         onAddWater = { viewModel.addWater(it) },
         onAddCoffee = { type, caffeine -> viewModel.addCoffee(type, caffeine) },
-        onDeleteWater = { viewModel.deleteWaterLog(it) },
-        onDeleteCoffee = { viewModel.deleteCoffeeLog(it) },
         onToggleTheme = {
             val nextTheme = if (state.themeMode == ThemeMode.DARK) ThemeMode.LIGHT else ThemeMode.DARK
             viewModel.setThemeMode(nextTheme)
@@ -125,8 +118,6 @@ fun DashboardContent(
     isSupabaseConnected: Boolean = false,
     onAddWater: (Int) -> Unit = {},
     onAddCoffee: (type: String, caffeineMg: Int) -> Unit = { _, _ -> },
-    onDeleteWater: (String) -> Unit = {},
-    onDeleteCoffee: (String) -> Unit = {},
     onToggleTheme: () -> Unit = {},
     onTriggerManualSync: () -> Unit = {},
     onSendTestNotification: () -> Unit = {},
@@ -155,7 +146,7 @@ fun DashboardContent(
                 title = {
                     Column {
                         Text(
-                            text = "Hidrasi & Kopi",
+                            text = "Minum.ku",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold
                             )
@@ -296,50 +287,6 @@ fun DashboardContent(
                     coffeeCount = state.coffeeLogsToday.size,
                     onAddCoffeeClick = { showAddCoffeeDialog = true }
                 )
-            }
-
-            // Coffee Log Items
-            if (state.coffeeLogsToday.isEmpty()) {
-                item {
-                    EmptyCoffeeStateCard(onAddClick = { showAddCoffeeDialog = true })
-                }
-            } else {
-                items(
-                    items = state.coffeeLogsToday,
-                    key = { it.id }
-                ) { coffeeLog ->
-                    SwipeableLogItem(
-                        logId = coffeeLog.id,
-                        onDelete = { onDeleteCoffee(coffeeLog.id) }
-                    ) {
-                        CoffeeLogCard(
-                            coffeeLog = coffeeLog,
-                            onDelete = { onDeleteCoffee(it) }
-                        )
-                    }
-                }
-            }
-
-            // 4. Water Intake Log History Section
-            item {
-                WaterHistoryHeaderCard(waterLogsCount = state.waterLogsToday.size)
-            }
-
-            if (state.waterLogsToday.isNotEmpty()) {
-                items(
-                    items = state.waterLogsToday,
-                    key = { it.id }
-                ) { waterLog ->
-                    SwipeableLogItem(
-                        logId = waterLog.id,
-                        onDelete = { onDeleteWater(waterLog.id) }
-                    ) {
-                        WaterLogRowCard(
-                            waterLog = waterLog,
-                            onDelete = { onDeleteWater(it) }
-                        )
-                    }
-                }
             }
 
             // Bottom Spacing
@@ -705,73 +652,6 @@ fun CoffeeTrackerHeaderCard(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun EmptyCoffeeStateCard(onAddClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = Icons.Default.Coffee,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                modifier = Modifier.size(40.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Belum Ada Catatan Kopi Hari Ini",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = "Klik tombol 'Tambah Kopi' untuk mencatat jenis kopi & kadar kafein.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.outline
-            )
-        }
-    }
-}
-
-@Composable
-fun WaterHistoryHeaderCard(waterLogsCount: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.WaterDrop,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = "Riwayat Air Minum Hari Ini",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-            )
-        }
-
-        Text(
-            text = "$waterLogsCount entri",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
