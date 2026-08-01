@@ -8,7 +8,9 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.MainAppContainer
 import com.example.ui.HydrationViewModel
 import com.example.ui.theme.MyApplicationTheme
@@ -30,7 +32,9 @@ class MainActivity : ComponentActivity() {
         
         // Set konten UI menggunakan Jetpack Compose
         setContent {
-            MyApplicationTheme {
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+            MyApplicationTheme(themeMode = uiState.themeMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -40,6 +44,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
     }
 }
 

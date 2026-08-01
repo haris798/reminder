@@ -17,13 +17,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -46,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.CoffeeLogCard
 import com.example.ui.components.SwipeableLogItem
 import com.example.ui.components.WeeklySummaryCard
+import com.example.ui.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,6 +100,24 @@ fun HistoryScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            if (state.themeMode == ThemeMode.DARK) {
+                                viewModel.setThemeMode(ThemeMode.LIGHT)
+                            } else {
+                                viewModel.setThemeMode(ThemeMode.DARK)
+                            }
+                        },
+                        modifier = Modifier.testTag("history_theme_toggle_button")
+                    ) {
+                        Icon(
+                            imageVector = if (state.themeMode == ThemeMode.DARK) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = if (state.themeMode == ThemeMode.DARK) "Beralih ke Mode Terang" else "Beralih ke Mode Gelap",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

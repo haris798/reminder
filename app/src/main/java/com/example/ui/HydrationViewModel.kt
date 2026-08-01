@@ -1,6 +1,7 @@
 package com.example.ui
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.AppDatabase
@@ -9,6 +10,7 @@ import com.example.data.model.WaterLog
 import com.example.data.repository.HydrationRepository
 import com.example.notification.DynamicScheduleInfo
 import com.example.notification.WaterNotificationManager
+import com.example.ui.theme.ThemeMode
 import com.example.worker.SyncWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -54,11 +56,13 @@ data class HydrationUiState(
     val currentDateIso: String = "",
     val dynamicSchedule: DynamicScheduleInfo = DynamicScheduleInfo(45, 0, "Sangat Sering (tiap 45m)", "Mulai hari ini", false),
     val weeklySummary: WeeklySummary = WeeklySummary(),
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val userMessage: String? = null
 )
 
 class HydrationViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val prefs = application.getSharedPreferences("app_settings_prefs", Context.MODE_PRIVATE)
     private val repository: HydrationRepository
     private val notificationManager: WaterNotificationManager
     private val todayIsoDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -66,6 +70,13 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _isSyncing = MutableStateFlow(false)
     private val _userMessage = MutableStateFlow<String?>(null)
+    private val _themeMode = MutableStateFlow(
+        try {
+            ThemeMode.valueOf(prefs.getString("theme_mode", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name)
+        } catch (e: Exception) {
+            ThemeMode.SYSTEM
+        }
+    )
 
     val uiState: StateFlow<HydrationUiState>
 
@@ -96,8 +107,9 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
             todayFlow,
             weeklyFlow,
             _isSyncing,
-            _userMessage
-        ) { (waterLogs, coffeeLogs), (water7Days, coffee7Days), syncing, message ->
+            _userMessage,
+            _themeMode
+        ) { (waterLogs, coffeeLogs), (water7Days, coffee7Days), syncing, message, themeMode ->
             val totalWater = waterLogs.sumOf { it.amountMl }
             val totalCaffeine = coffeeLogs.sumOf { it.caffeineMg }
             val unsyncedWater = waterLogs.count { !it.isSynced }
@@ -123,6 +135,7 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
                 currentDateIso = todayIsoDate,
                 dynamicSchedule = scheduleInfo,
                 weeklySummary = weeklySummary,
+                themeMode = themeMode,
                 userMessage = message
             )
         }.stateIn(
@@ -130,7 +143,8 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = HydrationUiState(
                 currentDateFormatted = formattedDate,
-                currentDateIso = todayIsoDate
+                currentDateIso = todayIsoDate,
+                themeMode = _themeMode.value
             )
         )
     }
@@ -271,6 +285,16 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
             targetMl = state.dailyWaterGoalMl
         )
         _userMessage.value = "Notifikasi pengingat dikirim (${state.dynamicSchedule.progressPercent}%)"
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        _themeMode.value = mode
+        prefs.edit().putString("theme_mode", mode.name).apply()
+        _userMessage.value = when (mode) {
+            ThemeMode.SYSTEM -> "Tema disesuaikan dengan sistem"
+            ThemeMode.LIGHT -> "Mode Terang diaktifkan"
+            ThemeMode.DARK -> "Mode Gelap diaktifkan"
+        }
     }
 
     fun clearUserMessage() {

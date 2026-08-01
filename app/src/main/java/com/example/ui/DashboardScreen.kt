@@ -24,7 +24,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Coffee
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Sync
@@ -76,6 +78,7 @@ import com.example.ui.components.CoffeeLogCard
 import com.example.ui.components.QuickWaterBottomSheet
 import com.example.ui.components.SwipeableLogItem
 import com.example.ui.components.WaterBarChartCard
+import com.example.ui.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,6 +132,24 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
+                    // Sun / Moon Theme Toggle Action Button
+                    IconButton(
+                        onClick = {
+                            if (state.themeMode == ThemeMode.DARK) {
+                                viewModel.setThemeMode(ThemeMode.LIGHT)
+                            } else {
+                                viewModel.setThemeMode(ThemeMode.DARK)
+                            }
+                        },
+                        modifier = Modifier.testTag("theme_toggle_button")
+                    ) {
+                        Icon(
+                            imageVector = if (state.themeMode == ThemeMode.DARK) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = if (state.themeMode == ThemeMode.DARK) "Beralih ke Mode Terang" else "Beralih ke Mode Gelap",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
                     // Supabase Online Connected Badge (only shown when connected)
                     if (isSupabaseConnected) {
                         Row(
