@@ -37,7 +37,7 @@ class SupabaseSettingsManager(context: Context) {
         val savedApiKey = prefs.getString(KEY_API_KEY, "") ?: ""
 
         val effectiveUrl = if (savedUrl.isBlank()) buildConfigUrl else savedUrl
-        val effectiveApiKey = if (savedApiKey.isBlank()) {
+        val effectiveApiKey = if (savedApiKey.isBlank() || savedApiKey == "YOUR_SUPABASE_API_KEY_HERE") {
             if (buildConfigKey.isNotBlank() && buildConfigKey != "YOUR_SUPABASE_API_KEY_HERE") buildConfigKey else ""
         } else {
             savedApiKey
@@ -54,15 +54,22 @@ class SupabaseSettingsManager(context: Context) {
     }
 
     fun saveConfig(config: SupabaseConfig) {
+        val buildConfigKey = BuildConfig.SUPABASE_API_KEY
+        val finalApiKey = if (config.apiKey.isBlank() && buildConfigKey.isNotBlank() && buildConfigKey != "YOUR_SUPABASE_API_KEY_HERE") {
+            buildConfigKey
+        } else {
+            config.apiKey
+        }
+
         prefs.edit()
             .putString(KEY_URL, config.supabaseUrl)
             .putString(KEY_EMAIL, config.userEmail)
             .putString(KEY_PASSWORD, config.userPassword)
-            .putString(KEY_API_KEY, config.apiKey)
+            .putString(KEY_API_KEY, finalApiKey)
             .putBoolean(KEY_AUTO_UPLOAD, config.autoUpload)
             .putInt(KEY_INTERVAL, config.uploadIntervalMinutes)
             .apply()
-        _configState.value = config
+        _configState.value = config.copy(apiKey = finalApiKey)
     }
 
     companion object {

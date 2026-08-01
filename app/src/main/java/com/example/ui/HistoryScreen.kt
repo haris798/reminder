@@ -46,12 +46,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import com.example.ui.components.CoffeeLogCard
 import com.example.ui.components.SwipeableLogItem
 import com.example.ui.components.WeeklySummaryCard
+import com.example.ui.preview.HydrationPreviewParameterProvider
+import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.ThemeMode
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     viewModel: HydrationViewModel,
@@ -67,6 +70,29 @@ fun HistoryScreen(
         }
     }
 
+    HistoryContent(
+        state = state,
+        onDeleteWaterLog = { viewModel.deleteWaterLog(it) },
+        onDeleteCoffeeLog = { viewModel.deleteCoffeeLog(it) },
+        onToggleTheme = {
+            val nextTheme = if (state.themeMode == ThemeMode.DARK) ThemeMode.LIGHT else ThemeMode.DARK
+            viewModel.setThemeMode(nextTheme)
+        },
+        snackbarHostState = snackbarHostState,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HistoryContent(
+    state: HydrationUiState,
+    onDeleteWaterLog: (String) -> Unit = {},
+    onDeleteCoffeeLog: (String) -> Unit = {},
+    onToggleTheme: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -104,13 +130,7 @@ fun HistoryScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = {
-                            if (state.themeMode == ThemeMode.DARK) {
-                                viewModel.setThemeMode(ThemeMode.LIGHT)
-                            } else {
-                                viewModel.setThemeMode(ThemeMode.DARK)
-                            }
-                        },
+                        onClick = onToggleTheme,
                         modifier = Modifier.testTag("history_theme_toggle_button")
                     ) {
                         Icon(
@@ -236,11 +256,11 @@ fun HistoryScreen(
                 ) { coffeeLog ->
                     SwipeableLogItem(
                         logId = coffeeLog.id,
-                        onDelete = { viewModel.deleteCoffeeLog(coffeeLog.id) }
+                        onDelete = { onDeleteCoffeeLog(coffeeLog.id) }
                     ) {
                         CoffeeLogCard(
                             coffeeLog = coffeeLog,
-                            onDelete = { viewModel.deleteCoffeeLog(it) }
+                            onDelete = { onDeleteCoffeeLog(it) }
                         )
                     }
                 }
@@ -281,11 +301,11 @@ fun HistoryScreen(
                 ) { waterLog ->
                     SwipeableLogItem(
                         logId = waterLog.id,
-                        onDelete = { viewModel.deleteWaterLog(waterLog.id) }
+                        onDelete = { onDeleteWaterLog(waterLog.id) }
                     ) {
                         WaterLogRowCard(
                             waterLog = waterLog,
-                            onDelete = { viewModel.deleteWaterLog(it) }
+                            onDelete = { onDeleteWaterLog(it) }
                         )
                     }
                 }
@@ -297,3 +317,15 @@ fun HistoryScreen(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun HistoryScreenPreview(
+    @PreviewParameter(HydrationPreviewParameterProvider::class) state: HydrationUiState
+) {
+    MyApplicationTheme(themeMode = state.themeMode) {
+        HistoryContent(state = state)
+    }
+}
+
+

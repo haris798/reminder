@@ -362,3 +362,21 @@ fun WaterBarChartCard(
     }
 }
 
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun WaterBarChartCardPreview() {
+    val sampleStats = listOf(
+        com.example.ui.DailyStat("2026-07-26", "Min", 2000, 95, true),
+        com.example.ui.DailyStat("2026-07-27", "Sen", 2200, 0, true),
+        com.example.ui.DailyStat("2026-07-28", "Sel", 1800, 120, false),
+        com.example.ui.DailyStat("2026-07-29", "Rab", 2100, 95, true),
+        com.example.ui.DailyStat("2026-07-30", "Kam", 2000, 60, true),
+        com.example.ui.DailyStat("2026-07-31", "Jum", 2150, 80, true),
+        com.example.ui.DailyStat("2026-08-01", "Sab", 1250, 95, false)
+    )
+    com.example.ui.theme.MyApplicationTheme {
+        WaterBarChartCard(dailyStats = sampleStats, dailyGoalMl = 2000)
+    }
+}
+
+

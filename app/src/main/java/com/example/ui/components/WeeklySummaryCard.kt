@@ -301,3 +301,31 @@ fun WeeklySummaryCard(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun WeeklySummaryCardPreview() {
+    val sampleSummary = com.example.ui.WeeklySummary(
+        totalWaterMl = 13500,
+        avgWaterMlPerDay = 1928,
+        targetReachedDays = 5,
+        consecutiveStreakDays = 4,
+        totalCaffeineMg = 450,
+        avgCaffeineMgPerDay = 64,
+        totalCoffeeCups = 5,
+        insightMessage = "Performa konsistensi hidrasi kamu minggu ini sangat baik! Pertahankan pola minum teratur.",
+        dailyStats = listOf(
+            com.example.ui.DailyStat("2026-07-26", "Min", 2000, 95, true),
+            com.example.ui.DailyStat("2026-07-27", "Sen", 2200, 0, true),
+            com.example.ui.DailyStat("2026-07-28", "Sel", 1800, 120, false),
+            com.example.ui.DailyStat("2026-07-29", "Rab", 2100, 95, true),
+            com.example.ui.DailyStat("2026-07-30", "Kam", 2000, 60, true),
+            com.example.ui.DailyStat("2026-07-31", "Jum", 2150, 80, true),
+            com.example.ui.DailyStat("2026-08-01", "Sab", 1250, 95, false)
+        )
+    )
+    com.example.ui.theme.MyApplicationTheme {
+        WeeklySummaryCard(weeklySummary = sampleSummary)
+    }
+}
+

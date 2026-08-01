@@ -77,10 +77,13 @@ import com.example.ui.components.CircularWaterProgress
 import com.example.ui.components.CoffeeLogCard
 import com.example.ui.components.QuickWaterBottomSheet
 import com.example.ui.components.SwipeableLogItem
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import com.example.ui.components.WaterBarChartCard
+import com.example.ui.preview.HydrationPreviewParameterProvider
+import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.ThemeMode
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     viewModel: HydrationViewModel,
@@ -90,16 +93,49 @@ fun DashboardScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var showAddCoffeeDialog by remember { mutableStateOf(false) }
-    var showCustomWaterDialog by remember { mutableStateOf(false) }
-    var showQuickWaterSheet by remember { mutableStateOf(false) }
-
     LaunchedEffect(state.userMessage) {
         state.userMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
             viewModel.clearUserMessage()
         }
     }
+
+    DashboardContent(
+        state = state,
+        isSupabaseConnected = isSupabaseConnected,
+        onAddWater = { viewModel.addWater(it) },
+        onAddCoffee = { type, caffeine -> viewModel.addCoffee(type, caffeine) },
+        onDeleteWater = { viewModel.deleteWaterLog(it) },
+        onDeleteCoffee = { viewModel.deleteCoffeeLog(it) },
+        onToggleTheme = {
+            val nextTheme = if (state.themeMode == ThemeMode.DARK) ThemeMode.LIGHT else ThemeMode.DARK
+            viewModel.setThemeMode(nextTheme)
+        },
+        onTriggerManualSync = { viewModel.triggerManualSync() },
+        onSendTestNotification = { viewModel.sendTestNotification() },
+        snackbarHostState = snackbarHostState,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DashboardContent(
+    state: HydrationUiState,
+    isSupabaseConnected: Boolean = false,
+    onAddWater: (Int) -> Unit = {},
+    onAddCoffee: (type: String, caffeineMg: Int) -> Unit = { _, _ -> },
+    onDeleteWater: (String) -> Unit = {},
+    onDeleteCoffee: (String) -> Unit = {},
+    onToggleTheme: () -> Unit = {},
+    onTriggerManualSync: () -> Unit = {},
+    onSendTestNotification: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    modifier: Modifier = Modifier
+) {
+    var showAddCoffeeDialog by remember { mutableStateOf(false) }
+    var showCustomWaterDialog by remember { mutableStateOf(false) }
+    var showQuickWaterSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -134,13 +170,7 @@ fun DashboardScreen(
                 actions = {
                     // Sun / Moon Theme Toggle Action Button
                     IconButton(
-                        onClick = {
-                            if (state.themeMode == ThemeMode.DARK) {
-                                viewModel.setThemeMode(ThemeMode.LIGHT)
-                            } else {
-                                viewModel.setThemeMode(ThemeMode.DARK)
-                            }
-                        },
+                        onClick = onToggleTheme,
                         modifier = Modifier.testTag("theme_toggle_button")
                     ) {
                         Icon(
@@ -188,7 +218,7 @@ fun DashboardScreen(
 
                     // Test notification action button
                     IconButton(
-                        onClick = { viewModel.sendTestNotification() },
+                        onClick = onSendTestNotification,
                         modifier = Modifier.testTag("test_notification_button")
                     ) {
                         Icon(
@@ -200,7 +230,7 @@ fun DashboardScreen(
 
                     // Manual background sync button
                     IconButton(
-                        onClick = { viewModel.triggerManualSync() },
+                        onClick = onTriggerManualSync,
                         enabled = !state.isSyncing,
                         modifier = Modifier.testTag("manual_sync_button")
                     ) {
@@ -236,8 +266,8 @@ fun DashboardScreen(
                 WaterHydrationCard(
                     currentMl = state.currentWaterMl,
                     targetMl = state.dailyWaterGoalMl,
-                    onQuickAdd250 = { viewModel.addWater(250) },
-                    onQuickAdd500 = { viewModel.addWater(500) },
+                    onQuickAdd250 = { onAddWater(250) },
+                    onQuickAdd500 = { onAddWater(500) },
                     onCustomAdd = { showCustomWaterDialog = true }
                 )
             }
@@ -280,11 +310,11 @@ fun DashboardScreen(
                 ) { coffeeLog ->
                     SwipeableLogItem(
                         logId = coffeeLog.id,
-                        onDelete = { viewModel.deleteCoffeeLog(coffeeLog.id) }
+                        onDelete = { onDeleteCoffee(coffeeLog.id) }
                     ) {
                         CoffeeLogCard(
                             coffeeLog = coffeeLog,
-                            onDelete = { viewModel.deleteCoffeeLog(it) }
+                            onDelete = { onDeleteCoffee(it) }
                         )
                     }
                 }
@@ -302,11 +332,11 @@ fun DashboardScreen(
                 ) { waterLog ->
                     SwipeableLogItem(
                         logId = waterLog.id,
-                        onDelete = { viewModel.deleteWaterLog(waterLog.id) }
+                        onDelete = { onDeleteWater(waterLog.id) }
                     ) {
                         WaterLogRowCard(
                             waterLog = waterLog,
-                            onDelete = { viewModel.deleteWaterLog(it) }
+                            onDelete = { onDeleteWater(it) }
                         )
                     }
                 }
@@ -324,11 +354,11 @@ fun DashboardScreen(
         QuickWaterBottomSheet(
             onDismissRequest = { showQuickWaterSheet = false },
             onPresetSelected = { amount ->
-                viewModel.addWater(amount)
+                onAddWater(amount)
                 showQuickWaterSheet = false
             },
             onCoffeePresetSelected = { type, caffeine ->
-                viewModel.addCoffee(type, caffeine)
+                onAddCoffee(type, caffeine)
                 showQuickWaterSheet = false
             }
         )
@@ -339,7 +369,7 @@ fun DashboardScreen(
         AddCoffeeDialog(
             onDismiss = { showAddCoffeeDialog = false },
             onConfirm = { type, caffeine ->
-                viewModel.addCoffee(type, caffeine)
+                onAddCoffee(type, caffeine)
                 showAddCoffeeDialog = false
             }
         )
@@ -349,12 +379,27 @@ fun DashboardScreen(
         AddWaterDialog(
             onDismiss = { showCustomWaterDialog = false },
             onConfirm = { amount ->
-                viewModel.addWater(amount)
+                onAddWater(amount)
                 showCustomWaterDialog = false
             }
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview(
+    @PreviewParameter(HydrationPreviewParameterProvider::class) state: HydrationUiState
+) {
+    MyApplicationTheme(themeMode = state.themeMode) {
+        DashboardContent(
+            state = state,
+            isSupabaseConnected = true
+        )
+    }
+}
+
+
 
 @Composable
 fun DynamicNotificationScheduleBanner(

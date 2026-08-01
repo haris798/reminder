@@ -66,10 +66,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.SupabaseConfig
 import com.example.data.SupabaseSettingsManager
 import com.example.ui.theme.ThemeMode
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import com.example.ui.preview.SupabaseConfigPreviewParameterProvider
+import com.example.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     settingsManager: SupabaseSettingsManager,
@@ -78,32 +81,62 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val currentConfig = settingsManager.loadConfig()
+    val configState by settingsManager.configState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    var url by remember { mutableStateOf(currentConfig.supabaseUrl) }
-    var email by remember { mutableStateOf(currentConfig.userEmail) }
-    var password by remember { mutableStateOf(currentConfig.userPassword) }
-    var apiKey by remember { mutableStateOf(currentConfig.apiKey) }
+    SettingsContent(
+        uiState = uiState,
+        configState = configState,
+        onSaveConfig = { newConfig ->
+            settingsManager.saveConfig(newConfig)
+            scope.launch {
+                snackbarHostState.showSnackbar("Pengaturan Supabase berhasil disimpan")
+            }
+        },
+        onToggleTheme = {
+            val nextTheme = if (uiState.themeMode == ThemeMode.DARK) ThemeMode.LIGHT else ThemeMode.DARK
+            viewModel.setThemeMode(nextTheme)
+        },
+        onSetThemeMode = { viewModel.setThemeMode(it) },
+        onSendTestNotification = { viewModel.sendTestNotification() },
+        onTestUpload = onTestUpload,
+        snackbarHostState = snackbarHostState,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsContent(
+    uiState: HydrationUiState,
+    configState: SupabaseConfig,
+    onSaveConfig: (SupabaseConfig) -> Unit = {},
+    onToggleTheme: () -> Unit = {},
+    onSetThemeMode: (ThemeMode) -> Unit = {},
+    onSendTestNotification: () -> Unit = {},
+    onTestUpload: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    modifier: Modifier = Modifier
+) {
+    var url by remember(configState.supabaseUrl) { mutableStateOf(configState.supabaseUrl) }
+    var email by remember(configState.userEmail) { mutableStateOf(configState.userEmail) }
+    var password by remember(configState.userPassword) { mutableStateOf(configState.userPassword) }
+    var apiKey by remember(configState.apiKey) { mutableStateOf(configState.apiKey) }
 
     var apiKeyVisible by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    val saveConfigAction = {
+    val performSave = {
         val newConfig = SupabaseConfig(
             supabaseUrl = url,
             userEmail = email,
             userPassword = password,
             apiKey = apiKey,
-            autoUpload = currentConfig.autoUpload,
-            uploadIntervalMinutes = currentConfig.uploadIntervalMinutes
+            autoUpload = configState.autoUpload,
+            uploadIntervalMinutes = configState.uploadIntervalMinutes
         )
-        settingsManager.saveConfig(newConfig)
-        scope.launch {
-            snackbarHostState.showSnackbar("Pengaturan Supabase berhasil disimpan")
-        }
+        onSaveConfig(newConfig)
     }
 
     Scaffold(
@@ -136,13 +169,7 @@ fun SettingsScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = {
-                            if (uiState.themeMode == ThemeMode.DARK) {
-                                viewModel.setThemeMode(ThemeMode.LIGHT)
-                            } else {
-                                viewModel.setThemeMode(ThemeMode.DARK)
-                            }
-                        },
+                        onClick = onToggleTheme,
                         modifier = Modifier.testTag("settings_theme_toggle_button")
                     ) {
                         Icon(
@@ -153,7 +180,7 @@ fun SettingsScreen(
                     }
 
                     IconButton(
-                        onClick = { saveConfigAction() },
+                        onClick = { performSave() },
                         modifier = Modifier.testTag("save_settings_button")
                     ) {
                         Icon(
@@ -163,6 +190,7 @@ fun SettingsScreen(
                         )
                     }
                 },
+
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -232,8 +260,9 @@ fun SettingsScreen(
                             val isSelected = uiState.themeMode == mode
 
                             Surface(
-                                onClick = { viewModel.setThemeMode(mode) },
+                                onClick = { onSetThemeMode(mode) },
                                 shape = RoundedCornerShape(16.dp),
+
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                                 border = BorderStroke(
                                     width = if (isSelected) 2.dp else 1.dp,
@@ -329,7 +358,7 @@ fun SettingsScreen(
                         }
 
                         IconButton(
-                            onClick = { viewModel.sendTestNotification() },
+                            onClick = { onSendTestNotification() },
                             modifier = Modifier.testTag("test_notification_btn")
                         ) {
                             Icon(
@@ -460,3 +489,17 @@ fun SettingsScreen(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun SettingsScreenPreview(
+    @PreviewParameter(SupabaseConfigPreviewParameterProvider::class) config: SupabaseConfig
+) {
+    MyApplicationTheme {
+        SettingsContent(
+            uiState = HydrationUiState(),
+            configState = config
+        )
+    }
+}
+
