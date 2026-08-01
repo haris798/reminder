@@ -253,25 +253,85 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
     fun triggerManualSync() {
         viewModelScope.launch {
             _isSyncing.value = true
-            _userMessage.value = "Memulai sinkronisasi data..."
+            _userMessage.value = "Memulai sinkronisasi data ke Supabase..."
+            com.example.util.AppLogger.i("HydrationViewModel", "Manual sync dipicu dari UI...")
             try {
-                val unsyncedWater = repository.getUnsyncedWaterLogs()
-                val unsyncedCoffee = repository.getUnsyncedCoffeeLogs()
+                val settingsManager = com.example.data.SupabaseSettingsManager(getApplication())
+                val config = settingsManager.loadConfig()
 
-                if (unsyncedWater.isEmpty() && unsyncedCoffee.isEmpty()) {
-                    _userMessage.value = "Semua data sudah tersinkronisasi"
+                if (config.supabaseUrl.isBlank()) {
+                    val msg = "URL Supabase belum diisi di Pengaturan!"
+                    _userMessage.value = msg
+                    com.example.util.AppLogger.w("HydrationViewModel", msg)
+                    return@launch
+                }
+                if (config.apiKey.isBlank() || config.apiKey == "YOUR_SUPABASE_API_KEY_HERE") {
+                    val msg = "API Key Supabase belum diisi di Pengaturan!"
+                    _userMessage.value = msg
+                    com.example.util.AppLogger.w("HydrationViewModel", msg)
+                    return@launch
+                }
+
+                var waterToSync = repository.getUnsyncedWaterLogs()
+                var coffeeToSync = repository.getUnsyncedCoffeeLogs()
+
+                // If no unsynced records found, fallback to sync all logs to populate Supabase table if empty
+                if (waterToSync.isEmpty() && coffeeToSync.isEmpty()) {
+                    com.example.util.AppLogger.i("HydrationViewModel", "Tidak ada log dengan is_synced=0, mengambil seluruh log SQLite...")
+                    waterToSync = repository.getAllWaterLogs()
+                    coffeeToSync = repository.getAllCoffeeLogs()
+                }
+
+                if (waterToSync.isEmpty() && coffeeToSync.isEmpty()) {
+                    val msg = "Belum ada catatan air atau kopi untuk disinkronkan"
+                    _userMessage.value = msg
+                    com.example.util.AppLogger.i("HydrationViewModel", msg)
+                    return@launch
+                }
+
+                val syncService = com.example.data.SupabaseSyncService()
+                var totalSynced = 0
+                val errors = mutableListOf<String>()
+
+                if (waterToSync.isNotEmpty()) {
+                    val waterResult = syncService.syncWaterLogs(config, waterToSync)
+                    waterResult.fold(
+                        onSuccess = { count ->
+                            totalSynced += count
+                            repository.markWaterLogsSynced(waterToSync.map { it.id })
+                        },
+                        onFailure = { error ->
+                            errors.add(error.message ?: "Gagal sync water_logs")
+                        }
+                    )
+                }
+
+                if (coffeeToSync.isNotEmpty()) {
+                    val coffeeResult = syncService.syncCoffeeLogs(config, coffeeToSync)
+                    coffeeResult.fold(
+                        onSuccess = { count ->
+                            totalSynced += count
+                            repository.markCoffeeLogsSynced(coffeeToSync.map { it.id })
+                        },
+                        onFailure = { error ->
+                            errors.add(error.message ?: "Gagal sync coffee_logs")
+                        }
+                    )
+                }
+
+                if (errors.isNotEmpty()) {
+                    val errMsg = "Gagal: ${errors.joinToString("; ")}"
+                    _userMessage.value = errMsg
+                    com.example.util.AppLogger.e("HydrationViewModel", "Manual sync selesai dengan error: $errMsg")
                 } else {
-                    // Simulation of Supabase upsert batch sync
-                    val waterIds = unsyncedWater.map { it.id }
-                    val coffeeIds = unsyncedCoffee.map { it.id }
-
-                    repository.markWaterLogsSynced(waterIds)
-                    repository.markCoffeeLogsSynced(coffeeIds)
-
-                    _userMessage.value = "Berhasil sinkronisasi ${waterIds.size + coffeeIds.size} data ke cloud"
+                    val succMsg = "Berhasil sinkronisasi $totalSynced data ke Supabase!"
+                    _userMessage.value = succMsg
+                    com.example.util.AppLogger.s("HydrationViewModel", succMsg)
                 }
             } catch (e: Exception) {
-                _userMessage.value = "Gagal sinkronisasi: ${e.message}"
+                val errMsg = "Gagal sinkronisasi: ${e.message}"
+                _userMessage.value = errMsg
+                com.example.util.AppLogger.e("HydrationViewModel", errMsg, e.stackTraceToString(), e)
             } finally {
                 _isSyncing.value = false
             }

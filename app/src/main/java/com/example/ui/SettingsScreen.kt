@@ -77,7 +77,7 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     settingsManager: SupabaseSettingsManager,
     viewModel: HydrationViewModel,
-    onTestUpload: () -> Unit = {},
+    onTestUpload: () -> Unit = { viewModel.triggerManualSync() },
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -484,6 +484,26 @@ fun SettingsContent(
                             .testTag("supabase_apikey_input"),
                         shape = RoundedCornerShape(16.dp)
                     )
+
+                    // 5. Test Upload Button
+                    Button(
+                        onClick = {
+                            performSave()
+                            onTestUpload()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("test_upload_supabase_button"),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CloudUpload,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Tes Sync / Upload Ke Supabase")
+                    }
                 }
             }
         }

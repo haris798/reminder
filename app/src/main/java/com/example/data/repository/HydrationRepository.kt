@@ -4,6 +4,7 @@ import com.example.data.dao.CoffeeLogDao
 import com.example.data.dao.WaterLogDao
 import com.example.data.model.CoffeeLog
 import com.example.data.model.WaterLog
+import com.example.util.AppLogger
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -11,6 +12,10 @@ class HydrationRepository(
     private val waterLogDao: WaterLogDao,
     private val coffeeLogDao: CoffeeLogDao
 ) {
+    companion object {
+        private const val TAG = "SQLiteDB"
+    }
+
     fun getWaterLogsForDate(date: String): Flow<List<WaterLog>> {
         return waterLogDao.getWaterLogsByDate(date)
     }
@@ -39,11 +44,13 @@ class HydrationRepository(
             isSynced = false
         )
         waterLogDao.insertWaterLog(waterLog)
+        AppLogger.i(TAG, "INSERT water_logs - +$amountMl ml", "ID=${waterLog.id}, Date=$dateString, isSynced=false")
         return waterLog
     }
 
     suspend fun deleteWaterLog(id: String) {
         waterLogDao.deleteWaterLogById(id)
+        AppLogger.i(TAG, "DELETE water_logs - ID=$id")
     }
 
     fun getCoffeeLogsForDate(date: String): Flow<List<CoffeeLog>> {
@@ -67,26 +74,50 @@ class HydrationRepository(
             isSynced = false
         )
         coffeeLogDao.insertCoffeeLog(coffeeLog)
+        AppLogger.i(TAG, "INSERT coffee_logs - $coffeeType ($caffeineMg mg)", "ID=${coffeeLog.id}, Date=$dateString, isSynced=false")
         return coffeeLog
     }
 
     suspend fun deleteCoffeeLog(id: String) {
         coffeeLogDao.deleteCoffeeLogById(id)
+        AppLogger.i(TAG, "DELETE coffee_logs - ID=$id")
     }
 
-    suspend fun getUnsyncedWaterLogs(): List<WaterLog> = waterLogDao.getUnsyncedWaterLogs()
+    suspend fun getUnsyncedWaterLogs(): List<WaterLog> {
+        val logs = waterLogDao.getUnsyncedWaterLogs()
+        AppLogger.i(TAG, "QUERY unsynced water_logs - Total: ${logs.size}")
+        return logs
+    }
 
-    suspend fun getUnsyncedCoffeeLogs(): List<CoffeeLog> = coffeeLogDao.getUnsyncedCoffeeLogs()
+    suspend fun getUnsyncedCoffeeLogs(): List<CoffeeLog> {
+        val logs = coffeeLogDao.getUnsyncedCoffeeLogs()
+        AppLogger.i(TAG, "QUERY unsynced coffee_logs - Total: ${logs.size}")
+        return logs
+    }
+
+    suspend fun getAllWaterLogs(): List<WaterLog> {
+        val logs = waterLogDao.getAllWaterLogs()
+        AppLogger.i(TAG, "QUERY all water_logs - Total: ${logs.size}")
+        return logs
+    }
+
+    suspend fun getAllCoffeeLogs(): List<CoffeeLog> {
+        val logs = coffeeLogDao.getAllCoffeeLogs()
+        AppLogger.i(TAG, "QUERY all coffee_logs - Total: ${logs.size}")
+        return logs
+    }
 
     suspend fun markWaterLogsSynced(ids: List<String>) {
         if (ids.isNotEmpty()) {
             waterLogDao.markWaterLogsAsSynced(ids)
+            AppLogger.s(TAG, "UPDATE water_logs - Set is_synced=1 untuk ${ids.size} baris", "IDs: ${ids.joinToString()}")
         }
     }
 
     suspend fun markCoffeeLogsSynced(ids: List<String>) {
         if (ids.isNotEmpty()) {
             coffeeLogDao.markCoffeeLogsAsSynced(ids)
+            AppLogger.s(TAG, "UPDATE coffee_logs - Set is_synced=1 untuk ${ids.size} baris", "IDs: ${ids.joinToString()}")
         }
     }
 }

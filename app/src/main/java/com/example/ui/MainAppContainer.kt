@@ -3,6 +3,7 @@ package com.example.ui
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
@@ -30,7 +31,8 @@ import com.example.data.SupabaseSettingsManager
 enum class AppTab(val title: String, val icon: ImageVector, val tag: String) {
     DASHBOARD("Dashboard", Icons.Default.Dashboard, "tab_dashboard"),
     RIWAYAT("Riwayat", Icons.Default.History, "tab_riwayat"),
-    PENGATURAN("Pengaturan", Icons.Default.Settings, "tab_pengaturan")
+    PENGATURAN("Pengaturan", Icons.Default.Settings, "tab_pengaturan"),
+    DEBUG("Log Debug", Icons.Default.BugReport, "tab_debug")
 }
 
 @Composable
@@ -92,6 +94,10 @@ fun MainAppContainer(
             1 -> HistoryScreen(viewModel = viewModel, modifier = contentModifier)
             2 -> SettingsScreen(
                 settingsManager = settingsManager,
+                viewModel = viewModel,
+                modifier = contentModifier
+            )
+            3 -> DebugLogScreen(
                 viewModel = viewModel,
                 modifier = contentModifier
             )

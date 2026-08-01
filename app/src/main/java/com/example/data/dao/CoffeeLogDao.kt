@@ -24,6 +24,9 @@ interface CoffeeLogDao {
     @Query("SELECT * FROM coffee_logs WHERE is_synced = 0")
     suspend fun getUnsyncedCoffeeLogs(): List<CoffeeLog>
 
+    @Query("SELECT * FROM coffee_logs")
+    suspend fun getAllCoffeeLogs(): List<CoffeeLog>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCoffeeLog(coffeeLog: CoffeeLog)
 

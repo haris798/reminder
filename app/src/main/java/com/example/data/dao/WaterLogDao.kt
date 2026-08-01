@@ -24,6 +24,9 @@ interface WaterLogDao {
     @Query("SELECT * FROM water_logs WHERE is_synced = 0")
     suspend fun getUnsyncedWaterLogs(): List<WaterLog>
 
+    @Query("SELECT * FROM water_logs")
+    suspend fun getAllWaterLogs(): List<WaterLog>
+
     @Query("SELECT * FROM water_logs ORDER BY created_at DESC LIMIT 1")
     suspend fun getLatestWaterLog(): WaterLog?
 
