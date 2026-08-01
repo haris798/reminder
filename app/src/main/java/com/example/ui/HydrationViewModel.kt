@@ -382,11 +382,6 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
     fun setThemeMode(mode: ThemeMode) {
         _themeMode.value = mode
         prefs.edit().putString("theme_mode", mode.name).apply()
-        _userMessage.value = when (mode) {
-            ThemeMode.SYSTEM -> "Tema disesuaikan dengan sistem"
-            ThemeMode.LIGHT -> "Mode Terang diaktifkan"
-            ThemeMode.DARK -> "Mode Gelap diaktifkan"
-        }
     }
 
     fun clearUserMessage() {
