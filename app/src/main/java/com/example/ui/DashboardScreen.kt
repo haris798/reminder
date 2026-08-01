@@ -65,7 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import com.example.data.model.WaterLog
 import com.example.ui.components.AchievementsCard
 import com.example.ui.components.AddCoffeeDialog
@@ -132,14 +132,17 @@ fun DashboardContent(
         modifier = modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            FloatingActionButton(
                 onClick = { showQuickWaterSheet = true },
-                icon = { Icon(imageVector = Icons.Default.WaterDrop, contentDescription = null) },
-                text = { Text("Tambah Air", fontWeight = FontWeight.Bold) },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.testTag("quick_water_fab")
-            )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.WaterDrop,
+                    contentDescription = "Tambah Air"
+                )
+            }
         },
         topBar = {
             TopAppBar(
