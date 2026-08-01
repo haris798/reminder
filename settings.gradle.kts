@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "HidrasiKopi"
+rootProject.name = "AirKopi"
 
 include(":app")
