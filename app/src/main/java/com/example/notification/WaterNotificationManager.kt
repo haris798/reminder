@@ -116,7 +116,7 @@ class WaterNotificationManager(private val context: Context) {
     }
 
     /**
-     * Dynamically updates or cancels periodic reminder schedule based on current progress.
+     * Memperbarui jadwal WorkManager untuk mengirim pengingat minum secara periodik.
      */
     fun updateDynamicReminderSchedule(currentMl: Int, targetMl: Int): DynamicScheduleInfo {
         val schedule = calculateDynamicSchedule(currentMl, targetMl)
@@ -124,11 +124,11 @@ class WaterNotificationManager(private val context: Context) {
 
         if (schedule.isGoalReached || schedule.intervalMinutes <= 0) {
             workManager.cancelUniqueWork(DYNAMIC_REMINDER_WORK_NAME)
-            Log.d(TAG, "Goal reached ($currentMl / $targetMl ml). Cancelled periodic reminder work.")
+            Log.d(TAG, "Target tercapai ($currentMl / $targetMl ml). Tugas pengingat WorkManager dibatalkan.")
         } else {
-            // Minimum WorkManager periodic interval is 15 mins.
-            val interval = schedule.intervalMinutes.coerceAtLeast(15)
-            val reminderRequest = PeriodicWorkRequestBuilder<ReminderWorker>(interval, TimeUnit.MINUTES)
+            // Mengatur WorkManager periodik 2 jam (120 menit)
+            val intervalMinutes = 120L
+            val reminderRequest = PeriodicWorkRequestBuilder<ReminderWorker>(intervalMinutes, TimeUnit.MINUTES)
                 .build()
 
             workManager.enqueueUniquePeriodicWork(
@@ -136,10 +136,26 @@ class WaterNotificationManager(private val context: Context) {
                 ExistingPeriodicWorkPolicy.UPDATE,
                 reminderRequest
             )
-            Log.d(TAG, "Scheduled dynamic reminder: ${schedule.frequencyLabel} (interval: ${interval}m)")
+            Log.d(TAG, "WorkManager pengingat minum 2 jam dijadwalkan (setiap 2 jam selama jam aktif 08:00 - 22:00)")
         }
 
         return schedule
+    }
+
+    /**
+     * Penjadwalan langsung WorkManager tugas background pengingat minum setiap 2 jam.
+     */
+    fun schedule2HourPeriodicReminder() {
+        val workManager = WorkManager.getInstance(context)
+        val reminderRequest = PeriodicWorkRequestBuilder<ReminderWorker>(2, TimeUnit.HOURS)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            DYNAMIC_REMINDER_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            reminderRequest
+        )
+        Log.d(TAG, "Enqueued 2-hour periodic hydration reminder WorkManager job.")
     }
 
     fun showHydrationReminderNotification(
