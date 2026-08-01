@@ -3,10 +3,10 @@ package com.example.ui
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -32,7 +32,7 @@ enum class AppTab(val title: String, val icon: ImageVector, val tag: String) {
     DASHBOARD("Dashboard", Icons.Default.Dashboard, "tab_dashboard"),
     RIWAYAT("Riwayat", Icons.Default.History, "tab_riwayat"),
     PENGATURAN("Pengaturan", Icons.Default.Settings, "tab_pengaturan"),
-    DEBUG("Log Debug", Icons.Default.BugReport, "tab_debug")
+    SYNC("Log Sync", Icons.Default.Sync, "tab_sync")
 }
 
 @Composable

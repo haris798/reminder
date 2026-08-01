@@ -30,6 +30,9 @@ interface CoffeeLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCoffeeLog(coffeeLog: CoffeeLog)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertCoffeeLogsIgnore(coffeeLogs: List<CoffeeLog>)
+
     @Query("UPDATE coffee_logs SET is_synced = 1 WHERE id IN (:ids)")
     suspend fun markCoffeeLogsAsSynced(ids: List<String>)
 

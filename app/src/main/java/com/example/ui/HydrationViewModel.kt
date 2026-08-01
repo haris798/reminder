@@ -293,6 +293,38 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
                 var totalSynced = 0
                 val errors = mutableListOf<String>()
 
+                // Unduh data dari Supabase ke lokal saat pertama kali terhubung
+                if (!settingsManager.isInitialDownloadComplete()) {
+                    com.example.util.AppLogger.i("HydrationViewModel", "Koneksi pertama terdeteksi - mengunduh data Supabase ke lokal")
+
+                    val waterDownload = syncService.downloadWaterLogs(config)
+                    if (waterDownload.isSuccess) {
+                        val downloadedWater = waterDownload.getOrThrow()
+                        if (downloadedWater.isNotEmpty()) {
+                            repository.insertDownloadedWaterLogs(downloadedWater)
+                            com.example.util.AppLogger.s("HydrationViewModel", "Download ${downloadedWater.size} water_logs ke lokal")
+                        }
+                    } else {
+                        errors.add(waterDownload.exceptionOrNull()?.message ?: "Gagal download water_logs")
+                    }
+
+                    val coffeeDownload = syncService.downloadCoffeeLogs(config)
+                    if (coffeeDownload.isSuccess) {
+                        val downloadedCoffee = coffeeDownload.getOrThrow()
+                        if (downloadedCoffee.isNotEmpty()) {
+                            repository.insertDownloadedCoffeeLogs(downloadedCoffee)
+                            com.example.util.AppLogger.s("HydrationViewModel", "Download ${downloadedCoffee.size} coffee_logs ke lokal")
+                        }
+                    } else {
+                        errors.add(coffeeDownload.exceptionOrNull()?.message ?: "Gagal download coffee_logs")
+                    }
+
+                    if (waterDownload.isSuccess && coffeeDownload.isSuccess) {
+                        settingsManager.setInitialDownloadComplete(true)
+                        com.example.util.AppLogger.s("HydrationViewModel", "Download awal Supabase selesai - data kini tersedia offline")
+                    }
+                }
+
                 if (waterToSync.isNotEmpty()) {
                     val waterResult = syncService.syncWaterLogs(config, waterToSync)
                     waterResult.fold(

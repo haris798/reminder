@@ -48,7 +48,8 @@ class SyncWorker(
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            val settings = com.example.data.SupabaseSettingsManager(applicationContext).loadConfig()
+            val settingsManager = com.example.data.SupabaseSettingsManager(applicationContext)
+            val settings = settingsManager.loadConfig()
             if (!settings.autoUpload) {
                 AppLogger.i(TAG, "Auto upload mati di pengaturan. Melewati background sync.")
                 return@withContext Result.success()
@@ -60,6 +61,39 @@ class SyncWorker(
             val db = AppDatabase.getInstance(applicationContext)
             val waterDao = db.waterLogDao()
             val coffeeDao = db.coffeeLogDao()
+
+            // Unduh data dari Supabase ke lokal saat pertama kali terhubung
+            if (settings.isConnected && !settingsManager.isInitialDownloadComplete()) {
+                AppLogger.i(TAG, "Koneksi Supabase pertama terdeteksi - mengunduh data ke lokal")
+                val syncService = com.example.data.SupabaseSyncService()
+
+                val waterDownload = syncService.downloadWaterLogs(settings)
+                if (waterDownload.isSuccess) {
+                    val downloadedWater = waterDownload.getOrThrow()
+                    if (downloadedWater.isNotEmpty()) {
+                        waterDao.insertWaterLogsIgnore(downloadedWater)
+                        AppLogger.s(TAG, "Download ${downloadedWater.size} water_logs -> disimpan ke lokal")
+                    }
+                } else {
+                    AppLogger.e(TAG, "Gagal download water_logs", waterDownload.exceptionOrNull()?.message)
+                }
+
+                val coffeeDownload = syncService.downloadCoffeeLogs(settings)
+                if (coffeeDownload.isSuccess) {
+                    val downloadedCoffee = coffeeDownload.getOrThrow()
+                    if (downloadedCoffee.isNotEmpty()) {
+                        coffeeDao.insertCoffeeLogsIgnore(downloadedCoffee)
+                        AppLogger.s(TAG, "Download ${downloadedCoffee.size} coffee_logs -> disimpan ke lokal")
+                    }
+                } else {
+                    AppLogger.e(TAG, "Gagal download coffee_logs", coffeeDownload.exceptionOrNull()?.message)
+                }
+
+                if (waterDownload.isSuccess && coffeeDownload.isSuccess) {
+                    settingsManager.setInitialDownloadComplete(true)
+                    AppLogger.s(TAG, "Download awal Supabase selesai - data kini tersedia offline")
+                }
+            }
 
             // 1. Ambil data water_logs dengan is_synced = 0
             val unsyncedWaterLogs = waterDao.getUnsyncedWaterLogs()

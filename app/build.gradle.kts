@@ -41,6 +41,9 @@ android {
       storePassword = "android"
       keyAlias = "androiddebugkey"
       keyPassword = "android"
+      // Keystore stable (PKCS12) direstore dari debug.keystore.base64 oleh ensureDebugKeystore.gradle.kts,
+      // sehingga setiap build memakai tanda tangan sama -> APK baru bisa update APK lama tanpa uninstall.
+      storeType = "PKCS12"
     }
   }
 

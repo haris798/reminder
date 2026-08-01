@@ -11,6 +11,7 @@ import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
 
 class SupabaseSyncService {
 
@@ -161,6 +162,132 @@ class SupabaseSyncService {
             AppLogger.e(TAG, "Exception saat sync coffee_logs: ${e.localizedMessage}", e.stackTraceToString(), e)
             Result.failure(e)
         }
+    }
+
+    suspend fun downloadWaterLogs(config: SupabaseConfig): Result<List<WaterLog>> = withContext(Dispatchers.IO) {
+        val urlString = config.supabaseUrl.trimEnd('/')
+        if (urlString.isBlank()) {
+            return@withContext Result.failure(IllegalStateException("URL Supabase belum diisi"))
+        }
+        val apiKey = config.apiKey.trim()
+        if (apiKey.isBlank() || apiKey == "YOUR_SUPABASE_API_KEY_HERE") {
+            return@withContext Result.failure(IllegalStateException("API Key Supabase belum diisi di Pengaturan"))
+        }
+
+        try {
+            val endpoint = URL("$urlString/rest/v1/water_logs?select=*&order=created_at.asc")
+            val connection = (endpoint.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 10000
+                readTimeout = 10000
+                setRequestProperty("apikey", apiKey)
+                setRequestProperty("Authorization", "Bearer $apiKey")
+                setRequestProperty("Accept", "application/json")
+            }
+
+            val responseCode = connection.responseCode
+            if (responseCode in 200..299) {
+                val responseText = connection.inputStream?.bufferedReader()?.use { it.readText() } ?: "[]"
+                val jsonArray = JSONArray(responseText)
+                val logs = mutableListOf<WaterLog>()
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    val createdAt = normalizeTimestamp(obj.optString("created_at", ""))
+                    logs.add(
+                        WaterLog(
+                            id = obj.optString("id", "").ifBlank { UUID.randomUUID().toString() },
+                            amountMl = obj.optInt("amount_ml", 0),
+                            createdAt = createdAt,
+                            dateString = obj.optString("date_string", "").ifBlank { deriveDateFrom(createdAt) },
+                            isSynced = true
+                        )
+                    )
+                }
+                AppLogger.s(TAG, "GET water_logs - Berhasil download ${logs.size} data dari Supabase")
+                Result.success(logs)
+            } else {
+                val errorMsg = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
+                val parsedDetails = parseSupabaseError(errorMsg)
+                AppLogger.e(TAG, "HTTP $responseCode - Gagal download water_logs", "Error Body: $errorMsg")
+                Result.failure(Exception("Gagal download water_logs (HTTP $responseCode): ${parsedDetails.ifBlank { errorMsg }}"))
+            }
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Exception saat download water_logs: ${e.localizedMessage}", e.stackTraceToString(), e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun downloadCoffeeLogs(config: SupabaseConfig): Result<List<CoffeeLog>> = withContext(Dispatchers.IO) {
+        val urlString = config.supabaseUrl.trimEnd('/')
+        if (urlString.isBlank()) {
+            return@withContext Result.failure(IllegalStateException("URL Supabase belum diisi"))
+        }
+        val apiKey = config.apiKey.trim()
+        if (apiKey.isBlank() || apiKey == "YOUR_SUPABASE_API_KEY_HERE") {
+            return@withContext Result.failure(IllegalStateException("API Key Supabase belum diisi di Pengaturan"))
+        }
+
+        try {
+            val endpoint = URL("$urlString/rest/v1/coffee_logs?select=*&order=created_at.asc")
+            val connection = (endpoint.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 10000
+                readTimeout = 10000
+                setRequestProperty("apikey", apiKey)
+                setRequestProperty("Authorization", "Bearer $apiKey")
+                setRequestProperty("Accept", "application/json")
+            }
+
+            val responseCode = connection.responseCode
+            if (responseCode in 200..299) {
+                val responseText = connection.inputStream?.bufferedReader()?.use { it.readText() } ?: "[]"
+                val jsonArray = JSONArray(responseText)
+                val logs = mutableListOf<CoffeeLog>()
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    val createdAt = normalizeTimestamp(obj.optString("created_at", ""))
+                    logs.add(
+                        CoffeeLog(
+                            id = obj.optString("id", "").ifBlank { UUID.randomUUID().toString() },
+                            coffeeType = obj.optString("coffee_type", "Kopi"),
+                            caffeineMg = obj.optInt("caffeine_mg", 0),
+                            createdAt = createdAt,
+                            dateString = obj.optString("date_string", "").ifBlank { deriveDateFrom(createdAt) },
+                            isSynced = true
+                        )
+                    )
+                }
+                AppLogger.s(TAG, "GET coffee_logs - Berhasil download ${logs.size} data dari Supabase")
+                Result.success(logs)
+            } else {
+                val errorMsg = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
+                val parsedDetails = parseSupabaseError(errorMsg)
+                AppLogger.e(TAG, "HTTP $responseCode - Gagal download coffee_logs", "Error Body: $errorMsg")
+                Result.failure(Exception("Gagal download coffee_logs (HTTP $responseCode): ${parsedDetails.ifBlank { errorMsg }}"))
+            }
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Exception saat download coffee_logs: ${e.localizedMessage}", e.stackTraceToString(), e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Normalisasi timestamp dari format ISO-8601 (mis. 2026-08-01T10:00:00.000Z)
+     * menjadi format aplikasi "yyyy-MM-dd HH:mm:ss".
+     */
+    private fun normalizeTimestamp(raw: String): String {
+        if (raw.isBlank()) return raw
+        val s = raw.trim().replace('T', ' ')
+        val cutIndex = s.indexOfFirst { it == '.' || it == '+' || it == 'Z' }
+        return if (cutIndex > 0) s.substring(0, cutIndex) else s
+    }
+
+    /**
+     * Ambil tanggal (yyyy-MM-dd) dari timestamp untuk mengisi date_string bila kosong.
+     */
+    private fun deriveDateFrom(createdAt: String): String {
+        val s = normalizeTimestamp(createdAt)
+        return if (s.length >= 10) s.substring(0, 10) else s
     }
 
     private fun parseSupabaseError(rawJson: String): String {

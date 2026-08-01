@@ -72,6 +72,17 @@ class SupabaseSettingsManager(context: Context) {
         _configState.value = config.copy(apiKey = finalApiKey)
     }
 
+    /**
+     * Menandai apakah download awal data dari Supabase ke lokal sudah pernah dilakukan.
+     * Dipakai untuk menarik data cloud ke perangkat saat pertama kali terkoneksi Supabase.
+     */
+    fun isInitialDownloadComplete(): Boolean =
+        prefs.getBoolean(KEY_INITIAL_DOWNLOAD_COMPLETE, false)
+
+    fun setInitialDownloadComplete(complete: Boolean) {
+        prefs.edit().putBoolean(KEY_INITIAL_DOWNLOAD_COMPLETE, complete).apply()
+    }
+
     companion object {
         private const val KEY_URL = "supabase_url"
         private const val KEY_EMAIL = "supabase_email"
@@ -79,6 +90,7 @@ class SupabaseSettingsManager(context: Context) {
         private const val KEY_API_KEY = "supabase_api_key"
         private const val KEY_AUTO_UPLOAD = "supabase_auto_upload"
         private const val KEY_INTERVAL = "supabase_upload_interval"
+        private const val KEY_INITIAL_DOWNLOAD_COMPLETE = "supabase_initial_download_complete"
     }
 }
 

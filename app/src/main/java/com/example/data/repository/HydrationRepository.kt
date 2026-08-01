@@ -120,4 +120,26 @@ class HydrationRepository(
             AppLogger.s(TAG, "UPDATE coffee_logs - Set is_synced=1 untuk ${ids.size} baris", "IDs: ${ids.joinToString()}")
         }
     }
+
+    /**
+     * Menyimpan data water_logs hasil download dari Supabase ke lokal.
+     * Baris dengan ID yang sudah ada tidak akan ditimpa (IGNORE).
+     */
+    suspend fun insertDownloadedWaterLogs(logs: List<WaterLog>) {
+        if (logs.isNotEmpty()) {
+            waterLogDao.insertWaterLogsIgnore(logs)
+            AppLogger.i(TAG, "INSERT downloaded water_logs - ${logs.size} baris (is_synced=1)")
+        }
+    }
+
+    /**
+     * Menyimpan data coffee_logs hasil download dari Supabase ke lokal.
+     * Baris dengan ID yang sudah ada tidak akan ditimpa (IGNORE).
+     */
+    suspend fun insertDownloadedCoffeeLogs(logs: List<CoffeeLog>) {
+        if (logs.isNotEmpty()) {
+            coffeeLogDao.insertCoffeeLogsIgnore(logs)
+            AppLogger.i(TAG, "INSERT downloaded coffee_logs - ${logs.size} baris (is_synced=1)")
+        }
+    }
 }

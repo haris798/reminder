@@ -33,6 +33,9 @@ interface WaterLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWaterLog(waterLog: WaterLog)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertWaterLogsIgnore(waterLogs: List<WaterLog>)
+
     @Query("UPDATE water_logs SET is_synced = 1 WHERE id IN (:ids)")
     suspend fun markWaterLogsAsSynced(ids: List<String>)
 
