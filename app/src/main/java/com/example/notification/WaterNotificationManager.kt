@@ -142,7 +142,11 @@ class WaterNotificationManager(private val context: Context) {
         return schedule
     }
 
-    fun showHydrationReminderNotification(currentMl: Int, targetMl: Int) {
+    fun showHydrationReminderNotification(
+        currentMl: Int,
+        targetMl: Int,
+        hoursSinceLastLog: Double? = null
+    ) {
         val remainingMl = targetMl - currentMl
         if (remainingMl <= 0) {
             return
@@ -160,10 +164,21 @@ class WaterNotificationManager(private val context: Context) {
             PendingIntent.FLAG_IMMUTABLE
         )
 
+        val contentText = when {
+            hoursSinceLastLog != null && hoursSinceLastLog >= 2.0 -> {
+                val roundedHours = hoursSinceLastLog.toInt()
+                "Sudah $roundedHours jam Anda belum mencatat minum air. Yuk, minum air putih sekarang! (Terpenuhi $currentMl / $targetMl ml)"
+            }
+            else -> {
+                "Anda sudah minum $currentMl ml. Tinggal $remainingMl ml lagi menuju target $targetMl ml."
+            }
+        }
+
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentTitle("Waktunya Minum Air! 💧 (${scheduleInfo.progressPercent}%)")
-            .setContentText("Anda sudah minum $currentMl ml. Tinggal $remainingMl ml lagi menuju target $targetMl ml.")
+            .setContentText(contentText)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)

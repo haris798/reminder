@@ -44,6 +44,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.CoffeeLogCard
+import com.example.ui.components.SwipeableLogItem
+import com.example.ui.components.WeeklySummaryCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,7 +137,7 @@ fun HistoryScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Total Air", style = MaterialTheme.typography.labelMedium)
+                                Text("Total Air Hari Ini", style = MaterialTheme.typography.labelMedium)
                             }
                             Text(
                                 text = "${state.currentWaterMl} ml",
@@ -161,7 +163,7 @@ fun HistoryScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Total Kafein", style = MaterialTheme.typography.labelMedium)
+                                Text("Total Kafein Hari Ini", style = MaterialTheme.typography.labelMedium)
                             }
                             Text(
                                 text = "${state.totalCaffeineMg} mg",
@@ -173,12 +175,28 @@ fun HistoryScreen(
                 }
             }
 
+            // 7-Day Summary Statistics & Insights Card
+            item {
+                WeeklySummaryCard(weeklySummary = state.weeklySummary)
+            }
+
             // Section 1: Coffee Logs
             item {
-                Text(
-                    text = "Riwayat Kopi (${state.coffeeLogsToday.size})",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Riwayat Kopi (${state.coffeeLogsToday.size})",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Text(
+                        text = "👈 Geser utk hapus",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             if (state.coffeeLogsToday.isEmpty()) {
@@ -194,20 +212,36 @@ fun HistoryScreen(
                     items = state.coffeeLogsToday,
                     key = { "hist_coffee_${it.id}" }
                 ) { coffeeLog ->
-                    CoffeeLogCard(
-                        coffeeLog = coffeeLog,
-                        onDelete = { viewModel.deleteCoffeeLog(it) }
-                    )
+                    SwipeableLogItem(
+                        logId = coffeeLog.id,
+                        onDelete = { viewModel.deleteCoffeeLog(coffeeLog.id) }
+                    ) {
+                        CoffeeLogCard(
+                            coffeeLog = coffeeLog,
+                            onDelete = { viewModel.deleteCoffeeLog(it) }
+                        )
+                    }
                 }
             }
 
             // Section 2: Water Logs
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Riwayat Air Minum (${state.waterLogsToday.size})",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Riwayat Air Minum (${state.waterLogsToday.size})",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Text(
+                        text = "👈 Geser utk hapus",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             if (state.waterLogsToday.isEmpty()) {
@@ -223,10 +257,15 @@ fun HistoryScreen(
                     items = state.waterLogsToday,
                     key = { "hist_water_${it.id}" }
                 ) { waterLog ->
-                    WaterLogRowCard(
-                        waterLog = waterLog,
-                        onDelete = { viewModel.deleteWaterLog(it) }
-                    )
+                    SwipeableLogItem(
+                        logId = waterLog.id,
+                        onDelete = { viewModel.deleteWaterLog(waterLog.id) }
+                    ) {
+                        WaterLogRowCard(
+                            waterLog = waterLog,
+                            onDelete = { viewModel.deleteWaterLog(it) }
+                        )
+                    }
                 }
             }
 

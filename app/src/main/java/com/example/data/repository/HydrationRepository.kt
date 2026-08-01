@@ -15,12 +15,20 @@ class HydrationRepository(
         return waterLogDao.getWaterLogsByDate(date)
     }
 
+    fun getWaterLogsFromDate(startDateIso: String): Flow<List<WaterLog>> {
+        return waterLogDao.getWaterLogsFromDate(startDateIso)
+    }
+
     fun getTotalWaterForDate(date: String): Flow<Int?> {
         return waterLogDao.getTotalWaterForDate(date)
     }
 
     suspend fun getTotalWaterForDateDirect(date: String): Int {
         return waterLogDao.getTotalWaterForDateDirect(date) ?: 0
+    }
+
+    suspend fun getTotalCaffeineForDateDirect(date: String): Int {
+        return coffeeLogDao.getTotalCaffeineForDateDirect(date) ?: 0
     }
 
     suspend fun addWaterLog(amountMl: Int, dateString: String): WaterLog {
@@ -40,6 +48,10 @@ class HydrationRepository(
 
     fun getCoffeeLogsForDate(date: String): Flow<List<CoffeeLog>> {
         return coffeeLogDao.getCoffeeLogsByDate(date)
+    }
+
+    fun getCoffeeLogsFromDate(startDateIso: String): Flow<List<CoffeeLog>> {
+        return coffeeLogDao.getCoffeeLogsFromDate(startDateIso)
     }
 
     fun getTotalCaffeineForDate(date: String): Flow<Int?> {

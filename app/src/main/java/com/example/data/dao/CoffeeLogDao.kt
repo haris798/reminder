@@ -12,8 +12,14 @@ interface CoffeeLogDao {
     @Query("SELECT * FROM coffee_logs WHERE date_string = :date ORDER BY created_at DESC")
     fun getCoffeeLogsByDate(date: String): Flow<List<CoffeeLog>>
 
+    @Query("SELECT * FROM coffee_logs WHERE date_string >= :startDateIso ORDER BY created_at DESC")
+    fun getCoffeeLogsFromDate(startDateIso: String): Flow<List<CoffeeLog>>
+
     @Query("SELECT SUM(caffeine_mg) FROM coffee_logs WHERE date_string = :date")
     fun getTotalCaffeineForDate(date: String): Flow<Int?>
+
+    @Query("SELECT SUM(caffeine_mg) FROM coffee_logs WHERE date_string = :date")
+    suspend fun getTotalCaffeineForDateDirect(date: String): Int?
 
     @Query("SELECT * FROM coffee_logs WHERE is_synced = 0")
     suspend fun getUnsyncedCoffeeLogs(): List<CoffeeLog>

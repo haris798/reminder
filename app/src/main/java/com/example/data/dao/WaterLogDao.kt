@@ -12,6 +12,9 @@ interface WaterLogDao {
     @Query("SELECT * FROM water_logs WHERE date_string = :date ORDER BY created_at DESC")
     fun getWaterLogsByDate(date: String): Flow<List<WaterLog>>
 
+    @Query("SELECT * FROM water_logs WHERE date_string >= :startDateIso ORDER BY created_at DESC")
+    fun getWaterLogsFromDate(startDateIso: String): Flow<List<WaterLog>>
+
     @Query("SELECT SUM(amount_ml) FROM water_logs WHERE date_string = :date")
     fun getTotalWaterForDate(date: String): Flow<Int?>
 
@@ -20,6 +23,9 @@ interface WaterLogDao {
 
     @Query("SELECT * FROM water_logs WHERE is_synced = 0")
     suspend fun getUnsyncedWaterLogs(): List<WaterLog>
+
+    @Query("SELECT * FROM water_logs ORDER BY created_at DESC LIMIT 1")
+    suspend fun getLatestWaterLog(): WaterLog?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWaterLog(waterLog: WaterLog)

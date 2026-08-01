@@ -65,12 +65,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.ExtendedFloatingActionButton
 import com.example.data.model.CoffeeLog
 import com.example.data.model.WaterLog
+import com.example.ui.components.AchievementsCard
 import com.example.ui.components.AddCoffeeDialog
 import com.example.ui.components.AddWaterDialog
 import com.example.ui.components.CircularWaterProgress
 import com.example.ui.components.CoffeeLogCard
+import com.example.ui.components.QuickWaterBottomSheet
+import com.example.ui.components.SwipeableLogItem
+import com.example.ui.components.WaterBarChartCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +89,7 @@ fun DashboardScreen(
 
     var showAddCoffeeDialog by remember { mutableStateOf(false) }
     var showCustomWaterDialog by remember { mutableStateOf(false) }
+    var showQuickWaterSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.userMessage) {
         state.userMessage?.let { message ->
@@ -95,6 +101,16 @@ fun DashboardScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { showQuickWaterSheet = true },
+                icon = { Icon(imageVector = Icons.Default.WaterDrop, contentDescription = null) },
+                text = { Text("Tambah Air", fontWeight = FontWeight.Bold) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.testTag("quick_water_fab")
+            )
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -205,7 +221,24 @@ fun DashboardScreen(
                 )
             }
 
-            // 3. Coffee Tracker Section
+            // 2. 7-Day Water Consumption Bar Chart
+            item {
+                WaterBarChartCard(
+                    dailyStats = state.weeklySummary.dailyStats,
+                    dailyGoalMl = state.dailyWaterGoalMl
+                )
+            }
+
+            // 3. Hydration & Streak Achievements / Badges
+            item {
+                AchievementsCard(
+                    consecutiveStreakDays = state.weeklySummary.consecutiveStreakDays,
+                    targetReachedDays7Days = state.weeklySummary.targetReachedDays,
+                    isCaffeineSafe = state.totalCaffeineMg <= 400
+                )
+            }
+
+            // 4. Coffee Tracker Section
             item {
                 CoffeeTrackerHeaderCard(
                     totalCaffeineMg = state.totalCaffeineMg,
@@ -224,10 +257,15 @@ fun DashboardScreen(
                     items = state.coffeeLogsToday,
                     key = { it.id }
                 ) { coffeeLog ->
-                    CoffeeLogCard(
-                        coffeeLog = coffeeLog,
-                        onDelete = { viewModel.deleteCoffeeLog(it) }
-                    )
+                    SwipeableLogItem(
+                        logId = coffeeLog.id,
+                        onDelete = { viewModel.deleteCoffeeLog(coffeeLog.id) }
+                    ) {
+                        CoffeeLogCard(
+                            coffeeLog = coffeeLog,
+                            onDelete = { viewModel.deleteCoffeeLog(it) }
+                        )
+                    }
                 }
             }
 
@@ -241,10 +279,15 @@ fun DashboardScreen(
                     items = state.waterLogsToday,
                     key = { it.id }
                 ) { waterLog ->
-                    WaterLogRowCard(
-                        waterLog = waterLog,
-                        onDelete = { viewModel.deleteWaterLog(it) }
-                    )
+                    SwipeableLogItem(
+                        logId = waterLog.id,
+                        onDelete = { viewModel.deleteWaterLog(waterLog.id) }
+                    ) {
+                        WaterLogRowCard(
+                            waterLog = waterLog,
+                            onDelete = { viewModel.deleteWaterLog(it) }
+                        )
+                    }
                 }
             }
 
@@ -253,6 +296,21 @@ fun DashboardScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+    }
+
+    // Quick Water & Coffee Bottom Sheet
+    if (showQuickWaterSheet) {
+        QuickWaterBottomSheet(
+            onDismissRequest = { showQuickWaterSheet = false },
+            onPresetSelected = { amount ->
+                viewModel.addWater(amount)
+                showQuickWaterSheet = false
+            },
+            onCoffeePresetSelected = { type, caffeine ->
+                viewModel.addCoffee(type, caffeine)
+                showQuickWaterSheet = false
+            }
+        )
     }
 
     // Dialogs
