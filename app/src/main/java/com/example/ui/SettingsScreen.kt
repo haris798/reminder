@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
@@ -38,6 +39,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -90,6 +92,9 @@ fun SettingsScreen(
         configState = configState,
         onSaveConfig = { newConfig ->
             settingsManager.saveConfig(newConfig)
+            if (newConfig.isConnected) {
+                viewModel.checkAndDownloadInitialSupabaseData()
+            }
             scope.launch {
                 snackbarHostState.showSnackbar("Pengaturan Supabase berhasil disimpan")
             }
@@ -101,6 +106,7 @@ fun SettingsScreen(
         onSetThemeMode = { viewModel.setThemeMode(it) },
         onSendTestNotification = { viewModel.sendTestNotification() },
         onTestUpload = onTestUpload,
+        onDownloadCloudData = { viewModel.checkAndDownloadInitialSupabaseData(force = true) },
         snackbarHostState = snackbarHostState,
         modifier = modifier
     )
@@ -116,6 +122,7 @@ fun SettingsContent(
     onSetThemeMode: (ThemeMode) -> Unit = {},
     onSendTestNotification: () -> Unit = {},
     onTestUpload: () -> Unit = {},
+    onDownloadCloudData: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     modifier: Modifier = Modifier
 ) {
@@ -503,6 +510,26 @@ fun SettingsContent(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Tes Sync / Upload Ke Supabase")
+                    }
+
+                    // 6. Download Data Supabase Button
+                    OutlinedButton(
+                        onClick = {
+                            performSave()
+                            onDownloadCloudData()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("download_supabase_button"),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CloudDownload,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Download Data Supabase ke Lokal")
                     }
                 }
             }

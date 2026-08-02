@@ -4,119 +4,179 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- ====== GLASS FILLS (diagonal split) ====== -->
-    <!-- Left half: water -->
+    <!-- ====== GROUND SHADOW ====== -->
     <path
-        android:fillColor="#7CC3EE"
-        android:pathData="M40,64 L40,22 L68,22 Z" />
-    <!-- Right half: coffee -->
-    <path
-        android:fillColor="#5F3B22"
-        android:pathData="M40,64 L68,22 L68,64 Z" />
+        android:fillColor="#333E2723"
+        android:pathData="M28,81 C28,77.5 80,77.5 80,81 C80,85 28,85 28,81 Z" />
 
-    <!-- ====== WATER DETAILS (left) ====== -->
-    <!-- Wavy surface near the top -->
+    <!-- ====== GLASS BACKGROUND / GLASS FILL (Semi-transparent white interior) ====== -->
     <path
-        android:pathData="M43,28 C45,25.5 47,30 49,27.5 C51,25.5 53,29.5 55,27"
+        android:fillColor="#D8F5FBFC"
+        android:pathData="M27,24 C27,21 81,21 81,24 L74,78 C74,82 34,82 34,78 Z" />
+
+    <!-- ====== WATER FILL (Left half) ====== -->
+    <path
+        android:fillColor="#38B6FF"
+        android:pathData="M28,38 C35,35 44,41 54,38 L54,79 C44,81 35,80 34,77 Z" />
+    <path
+        android:fillColor="#0288D1"
+        android:pathData="M28,52 C37,50 46,55 54,52 L54,79 C44,81 35,80 34,77 Z" />
+
+    <!-- ====== WATER BUBBLES & SURFACE WAVE ====== -->
+    <!-- Surface highlight curve -->
+    <path
+        android:pathData="M28,38 C35,35 44,41 54,38"
+        android:strokeWidth="1.5"
+        android:strokeColor="#E0F7FA"
+        android:strokeLineCap="round" />
+    <!-- Bubbles -->
+    <path
+        android:fillColor="#E0F7FA"
+        android:pathData="M43,45 m-1.8,0 a1.8,1.8 0 1,0 3.6,0 a1.8,1.8 0 1,0 -3.6,0" />
+    <path
+        android:fillColor="#E0F7FA"
+        android:pathData="M36,54 m-1.3,0 a1.3,1.3 0 1,0 2.6,0 a1.3,1.3 0 1,0 -2.6,0" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,62 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+    <path
+        android:fillColor="#B3E5FC"
+        android:pathData="M39,69 m-1.2,0 a1.2,1.2 0 1,0 2.4,0 a1.2,1.2 0 1,0 -2.4,0" />
+
+    <!-- ====== COFFEE FILL (Right half) ====== -->
+    <path
+        android:fillColor="#4E2A18"
+        android:pathData="M54,38 C62,35 72,39 80,38 L74,77 C73,80 64,81 54,79 Z" />
+    <path
+        android:fillColor="#361B0E"
+        android:pathData="M54,50 C62,48 71,52 78,50 L74,77 C73,80 64,81 54,79 Z" />
+    <!-- Coffee Crema Layer (top of coffee) -->
+    <path
+        android:fillColor="#A06A38"
+        android:pathData="M54,38 C62,35 72,39 80,38 C75,41 63,41 54,38 Z" />
+    <path
+        android:fillColor="#C68A4C"
+        android:pathData="M68,38 m-1.2,0 a1.2,0.8 0 1,0 2.4,0 a1.2,0.8 0 1,0 -2.4,0" />
+    <path
+        android:fillColor="#C68A4C"
+        android:pathData="M73,39 m-0.9,0 a0.9,0.6 0 1,0 1.8,0 a0.9,0.6 0 1,0 -1.8,0" />
+
+    <!-- ====== DIAGONAL GLASS SPLITTER ====== -->
+    <path
+        android:pathData="M63,22 L45,80"
+        android:strokeWidth="2.8"
+        android:strokeColor="#252B33"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M61.8,22 L43.8,80"
+        android:strokeWidth="1.2"
+        android:strokeColor="#E0F7FA"
+        android:strokeLineCap="round" />
+
+    <!-- ====== GLASS OUTLINE & RIM ====== -->
+    <!-- Top Rim Outer Ellipse -->
+    <path
+        android:pathData="M27,24 C27,19.5 81,19.5 81,24 C81,28.5 27,28.5 27,24 Z"
+        android:strokeWidth="3.2"
+        android:strokeColor="#252B33"
+        android:fillColor="#10FFFFFF" />
+    <!-- Glass Outer Body Outline -->
+    <path
+        android:pathData="M27,24 L34,78 C34,82.5 74,82.5 74,78 L81,24"
+        android:strokeWidth="3.2"
+        android:strokeColor="#252B33"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- ====== GLASS SPECULAR HIGHLIGHTS ====== -->
+    <!-- Left vertical glass shine -->
+    <path
+        android:pathData="M30,27 L36,75"
+        android:strokeWidth="2.5"
+        android:strokeColor="#B0FFFFFF"
+        android:strokeLineCap="round" />
+    <!-- Top Rim shine -->
+    <path
+        android:pathData="M32,22.5 C42,20.8 66,20.8 76,22.5"
         android:strokeWidth="1.6"
-        android:strokeColor="#E8F6FF"
+        android:strokeColor="#E0FFFFFF"
         android:strokeLineCap="round" />
-    <!-- Rising bubbles -->
-    <path
-        android:fillColor="#CCFFFFFF"
-        android:pathData="M46,37 m-1.3,0 a1.3,1.3 0 1,0 2.6,0 a1.3,1.3 0 1,0 -2.6,0" />
-    <path
-        android:fillColor="#B8FFFFFF"
-        android:pathData="M50,32 m-0.9,0 a0.9,0.9 0 1,0 1.8,0 a0.9,0.9 0 1,0 -1.8,0" />
-    <path
-        android:fillColor="#B8FFFFFF"
-        android:pathData="M49,45 m-1.1,0 a1.1,1.1 0 1,0 2.2,0 a1.1,1.1 0 1,0 -2.2,0" />
 
-    <!-- ====== COFFEE DETAILS (right) ====== -->
-    <!-- Crema/foam along the diagonal -->
+    <!-- ====== WATER DROPLETS (Left of glass) ====== -->
+    <!-- Droplet 1 (Main) -->
     <path
-        android:pathData="M45,60 L65,26"
-        android:strokeWidth="2"
-        android:strokeColor="#8A5A33"
-        android:strokeLineCap="round" />
+        android:fillColor="#38B6FF"
+        android:strokeWidth="1.4"
+        android:strokeColor="#1E88E5"
+        android:pathData="M20,34 C17.5,38 15,41 15,43.5 C15,46.5 17.2,48.5 20,48.5 C22.8,48.5 25,46.5 25,43.5 C25,41 22.5,38 20,34 Z" />
     <path
-        android:fillColor="#C89B6E"
-        android:pathData="M47,54 m-1.2,0 a1.2,1.2 0 1,0 2.4,0 a1.2,1.2 0 1,0 -2.4,0" />
+        android:fillColor="#FFFFFF"
+        android:pathData="M18.2,42 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" />
+    <!-- Droplet 2 (Small top) -->
     <path
-        android:fillColor="#C89B6E"
-        android:pathData="M52,46 m-1.4,0 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0" />
+        android:fillColor="#38B6FF"
+        android:strokeWidth="1.2"
+        android:strokeColor="#1E88E5"
+        android:pathData="M24,26 C22.5,28.5 21,30.5 21,32 C21,34 22.3,35 24,35 C25.7,35 27,34 27,32 C27,30.5 25.5,28.5 24,26 Z" />
+    <!-- Droplet 3 (Small middle) -->
     <path
-        android:fillColor="#C89B6E"
-        android:pathData="M57,35 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" />
+        android:fillColor="#38B6FF"
+        android:strokeWidth="1"
+        android:strokeColor="#1E88E5"
+        android:pathData="M14,30 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
 
-    <!-- ====== GLASS BODY ====== -->
-    <!-- Thick outline -->
+    <!-- ====== GREEN LEAVES (Lower left) ====== -->
+    <!-- Top Leaf -->
     <path
-        android:pathData="M40,22 L40,60 C40,62.2 41.8,64 44,64 L64,64 C66.2,64 68,62.2 68,60 L68,22"
-        android:strokeWidth="3.4"
-        android:strokeColor="#2E2118"
+        android:fillColor="#5CB85C"
+        android:strokeWidth="1.8"
+        android:strokeColor="#1E5E20"
         android:strokeLineJoin="round"
+        android:pathData="M27,62 C16,56 12,65 18,74 C24,77 31,70 27,62 Z" />
+    <!-- Top Leaf Vein -->
+    <path
+        android:pathData="M27,62 C22,66 18,74 18,74"
+        android:strokeWidth="1.4"
+        android:strokeColor="#1E5E20"
         android:strokeLineCap="round" />
-    <!-- Rim -->
-    <path
-        android:pathData="M40.5,22.5 C40.5,20.5 67.5,20.5 67.5,22.5 C67.5,24.5 40.5,24.5 40.5,22.5 Z"
-        android:strokeWidth="2.2"
-        android:strokeColor="#2E2118"
-        android:fillColor="#F5EBDD" />
-    <!-- White vertical highlight -->
-    <path
-        android:pathData="M42.5,27 L42.5,60"
-        android:strokeWidth="1.6"
-        android:strokeColor="#8CFFFFFF"
-        android:strokeLineCap="round" />
-
-    <!-- ====== WATER DROPLETS (left) ====== -->
-    <path
-        android:fillColor="#7CC3EE"
-        android:pathData="M23,30 C21.5,33 20,35.5 20,37.5 C20,40 21.4,41.5 23,41.5 C24.6,41.5 26,40 26,37.5 C26,35.5 24.5,33 23,30 Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M21.8,36.5 m-0.8,0 a0.8,0.8 0 1,0 1.6,0 a0.8,0.8 0 1,0 -1.6,0" />
-    <path
-        android:fillColor="#7CC3EE"
-        android:pathData="M28,52 C26.5,55 25,57 25,59 C25,61.4 26.4,63 28,63 C29.6,63 31,61.4 31,59 C31,57 29.5,55 28,52 Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M26.8,58.5 m-0.7,0 a0.7,0.7 0 1,0 1.4,0 a0.7,0.7 0 1,0 -1.4,0" />
-
-    <!-- ====== GREEN LEAVES (lower left) ====== -->
+    <!-- Bottom Leaf -->
     <path
         android:fillColor="#4CAF50"
-        android:strokeWidth="1.2"
-        android:strokeColor="#2E7D32"
-        android:pathData="M18,66 C13.5,62 10,66.5 14,73 C17,75 21,70.5 18,66 Z" />
-    <path
-        android:fillColor="#43A047"
-        android:strokeWidth="1.2"
-        android:strokeColor="#2E7D32"
-        android:pathData="M12,76 C8,72 5.5,76.5 9.5,82 C12.5,84.5 15.5,80.5 12,76 Z" />
-
-    <!-- ====== STEAM WISPS (right) ====== -->
-    <path
-        android:pathData="M76,25 C78,21 76,18 79,15"
         android:strokeWidth="1.8"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round" />
+        android:strokeColor="#1E5E20"
+        android:strokeLineJoin="round"
+        android:pathData="M19,74 C10,70 6,78 12,86 C18,88 23,82 19,74 Z" />
+    <!-- Bottom Leaf Vein -->
     <path
-        android:pathData="M82,27 C84,23 82,20 85,17"
-        android:strokeWidth="1.8"
-        android:strokeColor="#FFFFFF"
+        android:pathData="M19,74 C15,78 12,86 12,86"
+        android:strokeWidth="1.4"
+        android:strokeColor="#1E5E20"
         android:strokeLineCap="round" />
 
-    <!-- ====== COFFEE BEAN (right) ====== -->
+    <!-- ====== STEAM WISPS (Upper right) ====== -->
     <path
-        android:fillColor="#6B4226"
-        android:strokeWidth="1.2"
-        android:strokeColor="#3A2318"
-        android:pathData="M82,47 C77.5,48 75.5,53 77.5,57.5 C79.5,62 84,62.5 85.5,59 C87,55 86,46.5 82,47 Z" />
-    <path
-        android:pathData="M79.2,50.5 C80.5,53.5 82,55.5 83.5,57"
-        android:strokeWidth="1"
-        android:strokeColor="#3A2318"
+        android:pathData="M78,28 C82,23 79,18 83,13"
+        android:strokeWidth="2.4"
+        android:strokeColor="#B0FFFFFF"
         android:strokeLineCap="round" />
+    <path
+        android:pathData="M85,31 C89,26 86,21 90,16"
+        android:strokeWidth="2.2"
+        android:strokeColor="#90FFFFFF"
+        android:strokeLineCap="round" />
+
+    <!-- ====== ROASTED COFFEE BEAN (Right) ====== -->
+    <path
+        android:fillColor="#5D3520"
+        android:strokeWidth="1.8"
+        android:strokeColor="#25130A"
+        android:strokeLineJoin="round"
+        android:pathData="M85,54 C79,55 76,62 79,68 C82,74 89,74 91,69 C93,64 91,53 85,54 Z" />
+    <!-- Coffee Bean Crease S-Curve -->
+    <path
+        android:pathData="M81,57 C84,61 86,63 88,67"
+        android:strokeWidth="1.6"
+        android:strokeColor="#25130A"
+        android:strokeLineCap="round" />
+
 </vector>

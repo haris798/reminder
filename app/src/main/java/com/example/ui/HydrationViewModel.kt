@@ -147,6 +147,9 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
                 themeMode = _themeMode.value
             )
         )
+
+        // Otomatis download data Supabase ke lokal saat pertama kali terkoneksi
+        checkAndDownloadInitialSupabaseData()
     }
 
     private fun calculateWeeklySummary(
@@ -247,6 +250,61 @@ class HydrationViewModel(application: Application) : AndroidViewModel(applicatio
             repository.deleteCoffeeLog(id)
             _userMessage.value = "Catatan kopi dihapus"
             com.example.widget.HydrationWidgetProvider.updateAllWidgets(getApplication())
+        }
+    }
+
+    fun checkAndDownloadInitialSupabaseData(force: Boolean = false) {
+        viewModelScope.launch {
+            val settingsManager = com.example.data.SupabaseSettingsManager(getApplication())
+            val config = settingsManager.loadConfig()
+            if (!config.isConnected) return@launch
+
+            if (force || !settingsManager.isInitialDownloadComplete()) {
+                _isSyncing.value = true
+                _userMessage.value = "Mengunduh data Supabase ke lokal..."
+                com.example.util.AppLogger.i("HydrationViewModel", "Koneksi Supabase terdeteksi - Mengunduh data cloud ke lokal (force=$force)...")
+
+                try {
+                    val syncService = com.example.data.SupabaseSyncService()
+                    val waterRes = syncService.downloadWaterLogs(config)
+                    val coffeeRes = syncService.downloadCoffeeLogs(config)
+
+                    var waterCount = 0
+                    var coffeeCount = 0
+
+                    if (waterRes.isSuccess) {
+                        val waterLogs = waterRes.getOrThrow()
+                        waterCount = waterLogs.size
+                        if (waterLogs.isNotEmpty()) {
+                            repository.insertDownloadedWaterLogs(waterLogs)
+                        }
+                    }
+                    if (coffeeRes.isSuccess) {
+                        val coffeeLogs = coffeeRes.getOrThrow()
+                        coffeeCount = coffeeLogs.size
+                        if (coffeeLogs.isNotEmpty()) {
+                            repository.insertDownloadedCoffeeLogs(coffeeLogs)
+                        }
+                    }
+
+                    if (waterRes.isSuccess && coffeeRes.isSuccess) {
+                        settingsManager.setInitialDownloadComplete(true)
+                        val msg = "Berhasil mengunduh $waterCount log air & $coffeeCount log kopi dari Supabase!"
+                        _userMessage.value = msg
+                        com.example.util.AppLogger.s("HydrationViewModel", msg)
+                    } else {
+                        val errMsg = "Gagal mengunduh beberapa data dari Supabase."
+                        _userMessage.value = errMsg
+                        com.example.util.AppLogger.e("HydrationViewModel", errMsg)
+                    }
+                } catch (e: Exception) {
+                    val errMsg = "Gagal download awal Supabase: ${e.message}"
+                    _userMessage.value = errMsg
+                    com.example.util.AppLogger.e("HydrationViewModel", errMsg, e.stackTraceToString(), e)
+                } finally {
+                    _isSyncing.value = false
+                }
+            }
         }
     }
 
