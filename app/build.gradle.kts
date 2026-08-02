@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.hydrationcoffee.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = 2
+    versionName = "1.0.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -28,13 +28,6 @@ android {
   }
 
   signingConfigs {
-    create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
-    }
     create("debugConfig") {
       val debugKeystore = file("${rootDir}/debug.keystore")
       storeFile = debugKeystore
@@ -44,6 +37,24 @@ android {
       // Keystore stable (PKCS12) direstore dari debug.keystore.base64 oleh ensureDebugKeystore.gradle.kts,
       // sehingga setiap build memakai tanda tangan sama -> APK baru bisa update APK lama tanpa uninstall.
       storeType = "PKCS12"
+    }
+    create("release") {
+      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
+      val releaseKeystore = file(keystorePath)
+      if (releaseKeystore.exists() && System.getenv("STORE_PASSWORD") != null) {
+        storeFile = releaseKeystore
+        storePassword = System.getenv("STORE_PASSWORD")
+        keyAlias = "upload"
+        keyPassword = System.getenv("KEY_PASSWORD")
+      } else {
+        // Fallback ke debugConfig agar APK release & debug memiliki signature yang sama dari debug.keystore.base64
+        val debugKeystore = file("${rootDir}/debug.keystore")
+        storeFile = debugKeystore
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+        storeType = "PKCS12"
+      }
     }
   }
 
